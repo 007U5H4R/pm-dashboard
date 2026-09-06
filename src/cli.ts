@@ -5746,16 +5746,30 @@ program
 	.option("-p, --port <port>", "port to run server on")
 	.option("--no-open", "don't automatically open browser")
 	.option("--non-interactive", "automatically use next free port without asking")
+	.option("--projects <file>", "serve every project listed in a projects.json (multi-project dashboard)")
 	.action(async (options) => {
 		try {
-			const cwd = await requireProjectRoot();
-			const { BacklogServer, findNextAvailablePort, isPortAvailable } = await import("./server/index.ts");
-			const server = new BacklogServer(cwd);
+			const { BacklogServer, DashboardServer, findNextAvailablePort, isPortAvailable } = await import(
+				"./server/index.ts"
+			);
+			// Explicit --projects wins; otherwise a projects.json in cwd; otherwise single-project mode from cwd
+			const explicitManifest = typeof options.projects === "string" ? options.projects : undefined;
+			const implicitManifest = join(process.cwd(), "projects.json");
+			const manifestPath =
+				explicitManifest ?? ((await Bun.file(implicitManifest).exists()) ? implicitManifest : undefined);
 
-			// Load config to get default port
-			const core = new Core(cwd);
-			const config = await core.filesystem.loadConfig();
-			const defaultPort = config?.defaultPort ?? 6420;
+			let server: { start: (port?: number, openBrowser?: boolean) => Promise<void>; stop: () => Promise<void> };
+			let defaultPort = 6420;
+			if (manifestPath) {
+				server = await DashboardServer.fromManifestFile(manifestPath);
+			} else {
+				const cwd = await requireProjectRoot();
+				server = new BacklogServer(cwd);
+				// Load config to get default port
+				const core = new Core(cwd);
+				const config = await core.filesystem.loadConfig();
+				defaultPort = config?.defaultPort ?? 6420;
+			}
 
 			let port = Number.parseInt(options.port || defaultPort.toString(), 10);
 			if (Number.isNaN(port) || port < 1 || port > 65535) {

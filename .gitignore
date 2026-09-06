@@ -69,3 +69,6 @@ test-benchmark-report.json
 
 # TUI screenshot captures
 .tui-screenshots
+
+# Local multi-project dashboard manifest (see projects.json.example)
+projects.json

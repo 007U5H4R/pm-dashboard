@@ -1,0 +1,7 @@
+{
+	"projects": [
+		{ "id": "family-tree", "name": "Family Tree", "path": "/Volumes/E Drive/Dev/Code/Claude/family-tree" },
+		{ "id": "pm-sample", "name": "PM Sample", "path": "/Volumes/E Drive/Dev/.scratch/pm-sample-project" }
+	],
+	"defaultProjectId": "family-tree"
+}
