@@ -8,6 +8,7 @@ import TaskList from './components/TaskList';
 import DraftsList from './components/DraftsList';
 import Settings from './components/Settings';
 import Statistics from './components/Statistics';
+import GanttPage from './components/GanttPage';
 import MilestonesPage from './components/MilestonesPage';
 import TaskDetailsModal from './components/TaskDetailsModal';
 import InitializationScreen from './components/InitializationScreen';
@@ -1047,6 +1048,20 @@ function AppContent() {
             <Route path="decisions/:id" element={<DecisionDetail decisions={decisions} onRefreshData={refreshData} dateFormat={config?.dateFormat} />} />
             <Route path="decisions/:id/:title" element={<DecisionDetail decisions={decisions} onRefreshData={refreshData} dateFormat={config?.dateFormat} />} />
             <Route path="statistics" element={<Statistics tasks={tasks} isLoading={isLoading} onEditTask={handleEditTask} projectName={projectName} dateFormat={config?.dateFormat} />} />
+            <Route
+              path="gantt"
+              element={
+                <GanttPage
+                  tasks={tasks}
+                  isLoading={isLoading}
+                  loadError={loadError}
+                  projectName={projectName}
+                  onRetry={() => {
+                    void refreshData();
+                  }}
+                />
+              }
+            />
             <Route path="settings" element={<Settings />} />
           </Route>
       </Routes>
