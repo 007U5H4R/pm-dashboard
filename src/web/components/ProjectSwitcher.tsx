@@ -38,11 +38,11 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 		<div ref={rootRef} className="relative px-4 pt-4 pb-2">
 			<button
 				type="button"
-				aria-haspopup="listbox"
+				aria-haspopup="menu"
 				aria-expanded={isOpen}
 				aria-label="Switch project"
 				onClick={() => setIsOpen(v => !v)}
-				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400"
 			>
 				<span className="flex items-center gap-2 min-w-0">
 					<span className="w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-semibold flex items-center justify-center shrink-0">
@@ -62,21 +62,23 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 			</button>
 			{isOpen && (
 				<ul
-					role="listbox"
+					role="menu"
 					aria-label="Projects"
 					className="absolute left-4 right-4 mt-1 z-20 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 max-h-72 overflow-auto"
 				>
 					{projects.map(project => {
 						const selected = project.id === active.id;
 						return (
-							<li key={project.id} role="option" aria-selected={selected}>
+							<li key={project.id}>
 								<button
 									type="button"
+									role="menuitem"
+									aria-current={selected ? 'true' : undefined}
 									onClick={() => {
 										setIsOpen(false);
 										if (!selected) onSelect(project.id);
 									}}
-									className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors duration-200 ${
+									className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 ${
 										selected
 											? 'text-blue-600 dark:text-blue-400 font-medium'
 											: 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'

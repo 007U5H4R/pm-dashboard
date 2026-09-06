@@ -21,15 +21,15 @@ describe("ProjectSwitcher", () => {
 			<ProjectSwitcherView projects={projects} activeProjectId="beta" onSelect={() => {}} open />,
 		);
 		expect(html).toContain("Beta");
-		expect(html).toContain('role="listbox"');
-		expect(html).toContain('aria-selected="true"');
-		expect((html.match(/role="option"/g) ?? []).length).toBe(2);
+		expect(html).toContain('role="menu"');
+		expect(html).toContain('aria-current="true"');
+		expect((html.match(/role="menuitem"/g) ?? []).length).toBe(2);
 	});
 
 	it("is closed by default", () => {
 		const html = renderToString(<ProjectSwitcherView projects={projects} activeProjectId="alpha" onSelect={() => {}} />);
 		expect(html).toContain('aria-expanded="false"');
-		expect(html).not.toContain('role="listbox"');
+		expect(html).not.toContain('role="menu"');
 	});
 
 	it("mounts inside a ProjectProvider without crashing (no projects yet → hidden)", () => {
