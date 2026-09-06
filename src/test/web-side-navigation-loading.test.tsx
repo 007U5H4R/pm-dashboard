@@ -3,6 +3,7 @@ import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import BoardPage from "../web/components/BoardPage";
 import SideNavigation from "../web/components/SideNavigation";
+import { ProjectProvider } from "../web/contexts/ProjectContext";
 
 const storage = new Map<string, string>();
 globalThis.localStorage = {
@@ -19,15 +20,17 @@ globalThis.localStorage = {
 const renderNavigation = (isLoading: boolean, taskCount: number, error?: Error): string =>
 	renderToString(
 		<MemoryRouter>
-			<SideNavigation
-				taskCount={taskCount}
-				docs={[]}
-				decisions={[]}
-				isLoading={isLoading}
-				error={error}
-				onRetry={async () => {}}
-				onRefreshData={async () => {}}
-			/>
+			<ProjectProvider>
+				<SideNavigation
+					taskCount={taskCount}
+					docs={[]}
+					decisions={[]}
+					isLoading={isLoading}
+					error={error}
+					onRetry={async () => {}}
+					onRefreshData={async () => {}}
+				/>
+			</ProjectProvider>
 		</MemoryRouter>,
 	);
 

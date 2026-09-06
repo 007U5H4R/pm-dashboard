@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { renderToString } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import SideNavigation from "../web/components/SideNavigation";
+import { ProjectProvider } from "../web/contexts/ProjectContext";
 
 const storage = new Map<string, string>();
 globalThis.localStorage = {
@@ -19,7 +20,9 @@ describe("SideNavigation Gantt link", () => {
 	it("renders a Gantt link next to the Kanban Board link", () => {
 		const html = renderToString(
 			<MemoryRouter>
-				<SideNavigation taskCount={0} docs={[]} decisions={[]} isLoading={false} onRefreshData={async () => {}} />
+				<ProjectProvider>
+					<SideNavigation taskCount={0} docs={[]} decisions={[]} isLoading={false} onRefreshData={async () => {}} />
+				</ProjectProvider>
 			</MemoryRouter>,
 		);
 		const board = html.indexOf('href="/board"');

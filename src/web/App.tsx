@@ -15,6 +15,7 @@ import InitializationScreen from './components/InitializationScreen';
 import LoadingSpinner from './components/LoadingSpinner';
 import { SuccessToast } from './components/SuccessToast';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ProjectProvider, useProject } from './contexts/ProjectContext';
 import { TaskIdIndexProvider } from './contexts/TaskIdIndexContext';
 import {
 	type Decision,
@@ -1130,10 +1131,18 @@ function AppContent() {
   );
 }
 
+function ProjectScopedApp() {
+  const { activeProjectId } = useProject();
+  // Remounting on switch resets tasks/config/WS subscription so every view re-fetches the new project.
+  return <AppContent key={activeProjectId ?? 'default'} />;
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ProjectProvider>
+        <ProjectScopedApp />
+      </ProjectProvider>
     </BrowserRouter>
   );
 }
