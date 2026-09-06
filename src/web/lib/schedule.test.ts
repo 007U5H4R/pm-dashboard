@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { Task } from "../../types/index.ts";
-import { computeSchedule, formatIsoDate, parseStoryPoints, percentComplete } from "./schedule.ts";
+import { computeSchedule, formatIsoDate, parseStoryPoints, percentComplete, toMermaidGantt } from "./schedule.ts";
 
 export function task(id: string, overrides: Partial<Task> = {}): Task {
 	return {
@@ -116,5 +116,38 @@ describe("computeSchedule", () => {
 			task("B", { createdDate: "2026-03-02" }),
 		]);
 		expect(formatIsoDate(tasks[0]?.start as Date)).toBe("2026-03-02");
+	});
+});
+
+describe("toMermaidGantt", () => {
+	it("emits one dated bar per task with status tags", () => {
+		const result = computeSchedule(
+			[
+				task("TASK-1", { title: "Schema: layer", status: "Done", labels: ["sp:2"] }),
+				task("TASK-2", { title: "API layer", status: "In Progress", labels: ["sp:3"], dependencies: ["TASK-1"] }),
+				task("TASK-3", { title: "Review me", status: "In Review", labels: ["sp:1"], dependencies: ["TASK-2"] }),
+				task("TASK-4", { title: "Stuck", status: "Blocked", dependencies: ["TASK-2"] }),
+				task("TASK-5", { title: "Later", status: "To Do", labels: ["sp:1"] }),
+			],
+			{ projectStart: START },
+		);
+		const gantt = toMermaidGantt(result, "Family Tree");
+		expect(gantt.split("\n")[0]).toBe("gantt");
+		expect(gantt).toContain("  title Family Tree");
+		expect(gantt).toContain("  dateFormat YYYY-MM-DD");
+		expect(gantt).toContain("  Schema layer · 2 pt :done, TASK_1, 2026-01-01, 2d");
+		expect(gantt).toContain("  API layer · 3 pt :active, TASK_2, 2026-01-03, 3d");
+		expect(gantt).toContain("  Review me · 1 pt (review) :active, TASK_3, 2026-01-06, 1d");
+		expect(gantt).toContain("  Stuck · no est. (blocked) :crit, TASK_4, 2026-01-06, 1d");
+		expect(gantt).toContain("  Later · 1 pt :TASK_5, 2026-01-01, 1d");
+	});
+
+	it("rounds fractional durations up to whole days", () => {
+		const result = computeSchedule([task("A", { labels: ["sp:0.5"] })], { projectStart: START });
+		expect(toMermaidGantt(result, "x")).toContain(", 1d");
+	});
+
+	it("renders an empty chart without throwing", () => {
+		expect(toMermaidGantt({ tasks: [], warnings: [] }, "Empty")).toContain("gantt");
 	});
 });

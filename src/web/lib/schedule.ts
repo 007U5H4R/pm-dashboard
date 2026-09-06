@@ -177,3 +177,51 @@ export function computeSchedule(tasks: readonly Task[], options: ScheduleOptions
 		warnings,
 	};
 }
+
+/** Mermaid gantt ids must be plain identifiers; task ids like TASK-2 are not. */
+export function ganttTaskId(id: string): string {
+	return id.replace(/[^A-Za-z0-9]/g, "_");
+}
+
+/** Colons, commas, hashes and semicolons all have meaning in gantt lines. */
+function sanitizeGanttText(text: string): string {
+	return text
+		.replace(/[:#;,]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+function ganttTags(task: ScheduledTask): string[] {
+	const status = task.status.trim().toLowerCase();
+	if (status === "done") return ["done"];
+	if (status === "in progress" || status === "in review") return ["active"];
+	if (status === "blocked") return ["crit"];
+	return [];
+}
+
+function ganttLabel(task: ScheduledTask): string {
+	const estimate = task.estimated ? `${task.points} pt` : "no est.";
+	const status = task.status.trim().toLowerCase();
+	const suffix = status === "in review" ? " (review)" : status === "blocked" ? " (blocked)" : "";
+	return `${sanitizeGanttText(task.title)} · ${estimate}${suffix}`;
+}
+
+export function toMermaidGantt(result: ScheduleResult, title: string): string {
+	const lines = [
+		"gantt",
+		`  title ${sanitizeGanttText(title) || "Gantt"}`,
+		"  dateFormat YYYY-MM-DD",
+		"  axisFormat %b %d",
+		"  section Tickets",
+	];
+	for (const task of result.tasks) {
+		const meta = [
+			...ganttTags(task),
+			ganttTaskId(task.id),
+			formatIsoDate(task.start),
+			`${Math.max(1, Math.ceil(task.days))}d`,
+		];
+		lines.push(`  ${ganttLabel(task)} :${meta.join(", ")}`);
+	}
+	return lines.join("\n");
+}
