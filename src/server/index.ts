@@ -277,6 +277,7 @@ export class BacklogServer {
 	private server: Server<unknown> | null = null;
 	private dashboard: DashboardServer | null = null;
 	private projectName = "Untitled Project";
+	private preparePromise: Promise<{ port: number; openBrowser: boolean }> | null = null;
 	private sockets = new Set<ServerWebSocket<unknown>>();
 	private contentStore: ContentStore | null = null;
 	private searchService: SearchService | null = null;
@@ -447,8 +448,21 @@ export class BacklogServer {
 		return this.server?.port ?? null;
 	}
 
-	/** Load config and project name; return the port/browser defaults the dashboard needs. */
-	async prepare(): Promise<{ port: number; openBrowser: boolean }> {
+	/**
+	 * Load config and project name; return the port/browser defaults the dashboard needs.
+	 * Runs once per lifetime (until `dispose()`), so lazily created projects can call it on first request.
+	 */
+	prepare(): Promise<{ port: number; openBrowser: boolean }> {
+		if (!this.preparePromise) {
+			this.preparePromise = this.loadDefaults().catch((error) => {
+				this.preparePromise = null;
+				throw error;
+			});
+		}
+		return this.preparePromise;
+	}
+
+	private async loadDefaults(): Promise<{ port: number; openBrowser: boolean }> {
 		// Load config (migration is handled globally by CLI)
 		const config = await this.core.filesystem.loadConfig();
 		this.projectName = config?.projectName || "Untitled Project";
@@ -491,6 +505,7 @@ export class BacklogServer {
 		this.searchService = null;
 		this.contentStore = null;
 		this.servicesReadyPromise = null;
+		this.preparePromise = null;
 		this.servicesInitialized = false;
 		this.browserLoadingState = { type: "loading", message: null };
 		this.storeReadyBroadcasted = false;
@@ -546,8 +561,9 @@ export class BacklogServer {
 			return;
 		}
 		const dashboard = new DashboardServer(ProjectRegistry.single(this.projectPath, () => this));
-		this.dashboard = dashboard;
+		// Record the dashboard only once it is listening, so a failed start (e.g. config load) stays retryable
 		await dashboard.start(port, openBrowser);
+		this.dashboard = dashboard;
 		this.server = dashboard.bunServer;
 	}
 
@@ -2040,10 +2056,12 @@ export class DashboardServer {
 		return this.server?.port ?? null;
 	}
 
-	private resolve(pid: string | undefined): BacklogServer | Response {
+	/** Look up a project and make sure its config is loaded (instances are created lazily by the registry). */
+	private async resolve(pid: string | undefined): Promise<BacklogServer | Response> {
 		const id = pid ?? this.registry.manifest.defaultProjectId;
 		const instance = this.registry.get(id);
 		if (!instance) return Response.json({ error: `Unknown project: ${id}` }, { status: 404 });
+		await instance.prepare();
 		return instance;
 	}
 
@@ -2062,7 +2080,7 @@ export class DashboardServer {
 			const legacy: Partial<Record<HttpMethod, ApiRouteHandler>> = {};
 			for (const method of Object.keys(methods) as HttpMethod[]) {
 				scoped[method] = async (req) => {
-					const target = this.resolve(req.params.pid);
+					const target = await this.resolve(req.params.pid);
 					if (target instanceof Response) return target;
 					const handler = target.apiRoutes[key]?.[method];
 					return handler ? handler(req) : new Response("Not Found", { status: 404 });
@@ -2081,10 +2099,11 @@ export class DashboardServer {
 		return routes;
 	}
 
-	private handleUpgrade(req: Request, server: Server<SocketData>): Response {
+	private async handleUpgrade(req: Request, server: Server<SocketData>): Promise<Response> {
 		const url = new URL(req.url);
 		const pid = url.searchParams.get("pid") ?? this.registry.manifest.defaultProjectId;
-		if (!this.registry.has(pid)) return new Response(`Unknown project: ${pid}`, { status: 404 });
+		const target = await this.resolve(pid);
+		if (target instanceof Response) return target;
 		const success = server.upgrade(req, { data: { pid } });
 		return success ? new Response(null, { status: 101 }) : new Response("WebSocket upgrade failed", { status: 400 });
 	}
@@ -2111,7 +2130,7 @@ export class DashboardServer {
 				routes: this.buildRoutes(),
 				fetch: async (req: Request, server: Server<SocketData>) => {
 					// Handle WebSocket upgrade (root path and /ws both land here — neither is a declared route)
-					if (req.headers.get("upgrade") === "websocket") return this.handleUpgrade(req, server);
+					if (req.headers.get("upgrade") === "websocket") return await this.handleUpgrade(req, server);
 					// For all other routes, return 404 since routes should handle all valid paths
 					const res = new Response("Not Found", { status: 404 });
 					// Disable caching for GET/HEAD so browser always fetches latest content
