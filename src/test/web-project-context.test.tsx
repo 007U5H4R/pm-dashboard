@@ -94,10 +94,14 @@ describe("ProjectProvider", () => {
 		expect(getActiveProjectId()).toBe("beta");
 	});
 
-	it("falls back to the default when the stored selection is unknown", async () => {
+	it("falls back to the default when the stored selection is unknown, and overwrites the stale storage", async () => {
 		storage.set("pm.activeProjectId", "gone");
 		await mount(okFetch);
 		expect(latest?.activeProjectId).toBe("alpha");
+		// Regression (I1): a stale id must not survive the reconcile, or every future load 404s
+		// against a project that no longer exists.
+		expect(storage.get("pm.activeProjectId")).toBe("alpha");
+		expect(getActiveProjectId()).toBe("alpha");
 	});
 
 	it("setProjectId persists and updates the API base", async () => {
@@ -108,10 +112,14 @@ describe("ProjectProvider", () => {
 		expect(container.textContent).toBe("beta");
 	});
 
-	it("degrades to legacy single-project mode when /api/projects fails", async () => {
+	it("degrades to legacy single-project mode when /api/projects fails, clearing any stored id", async () => {
+		// A stale id left over from a prior multi-project session must not survive a legacy-mode
+		// fallback either, or a plain `backlog browser` session repeats the 404 flash forever (I1).
+		storage.set("pm.activeProjectId", "beta");
 		await mount((async () => new Response("nope", { status: 404 })) as unknown as typeof fetch);
 		expect(latest?.projects).toEqual([]);
 		expect(latest?.activeProjectId).toBeNull();
 		expect(getActiveProjectId()).toBeNull();
+		expect(storage.has("pm.activeProjectId")).toBe(false);
 	});
 });

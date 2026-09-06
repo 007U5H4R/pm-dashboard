@@ -23,6 +23,17 @@ interface ProjectsResponse {
   defaultProjectId: string;
 }
 
+const PROJECT_STORAGE_KEY = 'pm.activeProjectId';
+
+/** Wipe a stale/legacy stored selection so it can't cause the same 404 on the next load. */
+function clearStoredProjectId(): void {
+  try {
+    localStorage.removeItem(PROJECT_STORAGE_KEY);
+  } catch {
+    // storage unavailable – nothing to clear
+  }
+}
+
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
@@ -53,17 +64,25 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         const known = new Set(body.projects.map(p => p.id));
         setProjectIdState(current => {
           const resolved = current !== null && known.has(current) ? current : body.defaultProjectId;
-          if (resolved !== current) setActiveProjectId(resolved);
+          // A stale id (project removed from the registry) or a first run with none stored both
+          // land here with resolved !== current: reconcile storage too, so the next load doesn't
+          // repeat the same 404 against a project that no longer exists.
+          if (resolved !== current) {
+            setActiveProjectId(resolved);
+            storeProjectId(resolved);
+          }
           return resolved;
         });
       } catch (err) {
         if (cancelled) return;
-        // Legacy single-project server (or outage): keep /api unprefixed so the app still works.
+        // Legacy single-project server (or outage): keep /api unprefixed so the app still works,
+        // and clear any stored id so a stale one doesn't keep 404ing on every future load.
         setProjects([]);
         setDefaultProjectId(null);
         setError(err instanceof Error ? err : new Error(String(err)));
         setActiveProjectId(null);
         setProjectIdState(null);
+        clearStoredProjectId();
       } finally {
         if (!cancelled) setLoading(false);
       }

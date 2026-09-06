@@ -1132,7 +1132,18 @@ function AppContent() {
 }
 
 function ProjectScopedApp() {
-  const { activeProjectId } = useProject();
+  const { activeProjectId, projectId, loading } = useProject();
+  // A stored project id needs /api/projects to confirm it's still registered before AppContent
+  // fires any scoped API call against it — otherwise a stale id 404s and flashes "Initialize
+  // project". No stored id means nothing to validate, so render immediately (the common case).
+  if (projectId !== null && loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900" role="status">
+        <LoadingSpinner size="md" text="" />
+        <span className="sr-only">Loading</span>
+      </div>
+    );
+  }
   // Remounting on switch resets tasks/config/WS subscription so every view re-fetches the new project.
   return <AppContent key={activeProjectId ?? 'default'} />;
 }
