@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Core } from "../core/backlog.ts";
 import { BacklogServer, DashboardServer } from "../server/index.ts";
@@ -125,6 +125,40 @@ describe("multi-project dashboard", () => {
 		// displayName is only set by prepare(); "Untitled Project" would mean the lazy instance was never prepared
 		expect(projectInstance("beta")?.displayName).toBe("Beta");
 		expect(projectInstance("alpha")?.displayName).toBe("Alpha");
+	});
+
+	it("isolates a PUT edit on one project's task from the other project", async () => {
+		const alphaCreated = await createTask("alpha", "Alpha task");
+		const { id: alphaId } = (await alphaCreated.json()) as { id: string };
+		const betaCreated = await createTask("beta", "Beta task");
+		const { id: betaId } = (await betaCreated.json()) as { id: string };
+
+		const edited = await api(`/api/p/alpha/tasks/${alphaId}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ title: "Alpha task (edited)" }),
+		});
+		expect(edited.status).toBe(200);
+		expect(((await edited.json()) as { title: string }).title).toBe("Alpha task (edited)");
+
+		// The edit is visible through alpha's own scoped API...
+		expect(await listTitles("/api/p/alpha/tasks")).toEqual(["Alpha task (edited)"]);
+		// ...and invisible through beta's: beta's task is untouched.
+		expect(await listTitles("/api/p/beta/tasks")).toEqual(["Beta task"]);
+		const betaTaskAfter = (await (await api(`/api/p/beta/tasks/${betaId}`)).json()) as { title: string };
+		expect(betaTaskAfter.title).toBe("Beta task");
+
+		// Confirm on disk too: alpha's task file picked up the new title, beta's file did not.
+		const readTaskFile = async (pid: string, taskId: string) => {
+			const dir = join(root, pid, "backlog", "tasks");
+			const file = (await readdir(dir)).find((name) => name.toLowerCase().startsWith(`${taskId.toLowerCase()} -`));
+			if (!file) throw new Error(`no task file for ${taskId} in ${dir}`);
+			return await readFile(join(dir, file), "utf8");
+		};
+		expect(await readTaskFile("alpha", alphaId)).toContain("Alpha task (edited)");
+		const betaFileContents = await readTaskFile("beta", betaId);
+		expect(betaFileContents).toContain("Beta task");
+		expect(betaFileContents).not.toContain("edited");
 	});
 
 	it("returns 404 for an unknown project", async () => {
