@@ -10,8 +10,29 @@ interface MermaidConfig {
 	securityLevel?: "strict" | "loose" | "antiscript" | "sandbox";
 	theme?: "base" | "default" | "dark" | "forest" | "neutral" | "null";
 	logLevel?: number;
+	themeVariables?: Record<string, string>;
 	[key: string]: unknown;
 }
+
+// Same hex values as the Gantt legend swatches (see GanttPage.tsx LEGEND) so the rendered
+// bars actually match what the legend claims. Only the gantt diagram consumes these
+// theme variables (see mermaid's ganttDiagram styles.js) — flowchart/dependency-graph
+// diagrams rendered via the other MermaidMarkdown callers are unaffected.
+const GANTT_THEME_VARIABLES: Record<string, string> = {
+	doneTaskBkgColor: "#10b981", // emerald-500 — Done
+	doneTaskBorderColor: "#059669", // emerald-600
+	activeTaskBkgColor: "#3b82f6", // blue-500 — In Progress / In Review
+	activeTaskBorderColor: "#2563eb", // blue-600
+	critBkgColor: "#ef4444", // red-500 — Blocked
+	critBorderColor: "#dc2626", // red-600
+	taskBkgColor: "#d1d5db", // gray-300 — To Do (untagged)
+	taskBorderColor: "#9ca3af", // gray-400
+	// Text inside active/done/crit bars all share taskTextDarkColor; text inside
+	// untagged bars uses taskTextColor; text drawn outside a bar uses taskTextOutsideColor.
+	taskTextColor: "#1f2937", // gray-800, readable on the light gray "To Do" bars
+	taskTextDarkColor: "#ffffff", // readable on the saturated emerald/blue/red bars
+	taskTextOutsideColor: "#1f2937", // gray-800, readable on the white/light page background
+};
 
 interface MermaidRunOptions {
 	nodes?: HTMLElement[];
@@ -63,6 +84,7 @@ async function initializeMermaid(mermaid: MermaidAPI): Promise<void> {
 			startOnLoad: false,
 			securityLevel: "strict",
 			theme: "default",
+			themeVariables: GANTT_THEME_VARIABLES,
 		});
 	})();
 
