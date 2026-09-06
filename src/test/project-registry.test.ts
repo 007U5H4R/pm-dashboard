@@ -59,6 +59,9 @@ describe("parseProjectsManifest", () => {
 		expect(() => parseProjectsManifest({ projects: [{ id: "a", path: "/a" }], defaultProjectId: "zzz" }, BASE)).toThrow(
 			/defaultProjectId/,
 		);
+		expect(() => parseProjectsManifest({ projects: [{ id: "a", path: "/a" }], defaultProjectId: 1 }, BASE)).toThrow(
+			/defaultProjectId must be a string/,
+		);
 	});
 });
 

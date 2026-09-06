@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isLocalEditableTask, type AcceptanceCriterion, type Milestone, type Task, type TaskComment } from "../../types";
+import { DEFAULT_STATUSES } from "../../constants/index.ts";
 import { type TaskDetail, taskDependencyGraph, taskReadiness } from "../../core/task-detail";
 import Modal from "./Modal";
 import { apiClient, NetworkError, readDemotionFailureCause, readMovedFailureState } from "../lib/api";
@@ -1953,7 +1954,7 @@ export const TaskDetailsModal: React.FC<Props> = ({
 const StatusSelect: React.FC<{ current: string; onChange: (v: string) => void; disabled?: boolean }> = ({ current, onChange, disabled }) => {
   const [statuses, setStatuses] = useState<string[]>([]);
   useEffect(() => {
-    apiClient.fetchStatuses().then(setStatuses).catch(() => setStatuses(["To Do", "In Progress", "Done"]));
+    apiClient.fetchStatuses().then(setStatuses).catch(() => setStatuses([...DEFAULT_STATUSES]));
   }, []);
   // A draft is on status Draft, and a completed record can hold a historical status, neither of
   // which is configured. Showing the value the record actually has beats showing the first option.

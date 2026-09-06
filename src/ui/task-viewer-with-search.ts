@@ -3,6 +3,7 @@
 import { stdout as output } from "node:process";
 import type { BoxInterface, LineInterface, ScreenInterface, ScrollableTextInterface } from "neo-neo-bblessed";
 import { box, line, scrollabletext } from "neo-neo-bblessed";
+import { DEFAULT_STATUSES } from "../constants/index.ts";
 import { type Core, createRuntimeCore } from "../core/backlog.ts";
 import {
 	loadTaskDetail,
@@ -326,7 +327,7 @@ export async function viewTaskEnhanced(
 		// Tasks already provided - no ContentStore loading
 		allTasks = options.tasks.filter((t) => t.id && t.id.trim() !== "" && hasAnyPrefix(t.id));
 		const config = await core.filesystem.loadConfig();
-		statuses = config?.statuses || ["To Do", "In Progress", "Done"];
+		statuses = config?.statuses || [...DEFAULT_STATUSES];
 		labels = config?.labels || [];
 		priorityOptions = getPriorityOptions(config);
 		configuredTaskTypes = getTaskTypeValues(config);
@@ -339,7 +340,7 @@ export async function viewTaskEnhanced(
 		try {
 			loadingScreen?.update("Loading configuration...");
 			const config = await core.filesystem.loadConfig();
-			statuses = config?.statuses || ["To Do", "In Progress", "Done"];
+			statuses = config?.statuses || [...DEFAULT_STATUSES];
 			labels = config?.labels || [];
 			priorityOptions = getPriorityOptions(config);
 			configuredTaskTypes = getTaskTypeValues(config);

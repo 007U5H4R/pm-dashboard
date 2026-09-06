@@ -21,7 +21,7 @@ if ! "$BACKLOG_BIN" task edit "$TASK_ID" -s "$STATUS" --plain >/dev/null; then
 	echo "error: backlog task edit failed for $TASK_ID → '$STATUS' in $PROJECT_DIR" >&2
 	exit 2
 fi
-if ! "$BACKLOG_BIN" task list --plain -s "$STATUS" | grep -qi -- "$TASK_ID"; then
+if ! "$BACKLOG_BIN" task list --plain -s "$STATUS" | grep -qiw -- "$TASK_ID"; then
 	echo "error: $TASK_ID is not listed under '$STATUS' after the edit (task id unknown?)" >&2
 	exit 3
 fi

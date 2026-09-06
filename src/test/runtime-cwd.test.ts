@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getAssignees, getLabels, getStatuses, getTaskIds } from "../completions/data-providers.ts";
+import { DEFAULT_STATUSES } from "../constants/index.ts";
 import { Core, createRuntimeCore } from "../core/backlog.ts";
 import { BACKLOG_CWD_ENV, resolveRuntimeCwd } from "../utils/runtime-cwd.ts";
 import { initializeTestProject } from "./test-utils.ts";
@@ -162,14 +163,14 @@ describe("resolveRuntimeCwd", () => {
 			process.env[BACKLOG_CWD_ENV] = nestedDir;
 
 			expect(await getTaskIds()).toEqual([]);
-			expect(await getStatuses()).toEqual(["To Do", "In Progress", "Done"]);
+			expect(await getStatuses()).toEqual([...DEFAULT_STATUSES]);
 		});
 
 		it("degrades to static fallbacks when BACKLOG_CWD is invalid", async () => {
 			process.env[BACKLOG_CWD_ENV] = join(testDir, "missing");
 
 			expect(await getTaskIds()).toEqual([]);
-			expect(await getStatuses()).toEqual(["To Do", "In Progress", "Done"]);
+			expect(await getStatuses()).toEqual([...DEFAULT_STATUSES]);
 		});
 	});
 });

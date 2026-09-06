@@ -17,7 +17,11 @@ const PROJECT_STORAGE_KEY = "pm.activeProjectId";
 let activeProjectId: string | null = null;
 let API_BASE = "/api";
 
-/** Set (or clear) the project every API call and the WebSocket subscribe to. Null = legacy single-project `/api`. */
+/**
+ * Set (or clear) the project every API call and the WebSocket subscribe to. Null = legacy single-project `/api`.
+ * `API_BASE` is a mutable module `let` read live at call time — never chain write→await→write across a
+ * project switch, or an in-flight request started before the switch can read the new value.
+ */
 export function setActiveProjectId(projectId: string | null): void {
 	activeProjectId = projectId;
 	API_BASE = projectId ? `/api/p/${encodeURIComponent(projectId)}` : "/api";

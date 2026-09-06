@@ -43,7 +43,10 @@ export function parseProjectsManifest(raw: unknown, baseDir: string): ProjectsMa
 	}
 	const first = entries[0];
 	if (!first) throw new Error('projects.json needs a non-empty "projects" array');
-	const defaultProjectId = typeof raw.defaultProjectId === "string" ? raw.defaultProjectId : first.id;
+	if (raw.defaultProjectId !== undefined && typeof raw.defaultProjectId !== "string") {
+		throw new Error(`defaultProjectId must be a string, got ${JSON.stringify(raw.defaultProjectId)}`);
+	}
+	const defaultProjectId = raw.defaultProjectId ?? first.id;
 	if (!seen.has(defaultProjectId)) {
 		throw new Error(`defaultProjectId "${defaultProjectId}" is not a registered project`);
 	}
@@ -86,12 +89,10 @@ export class ProjectRegistry<T> {
 	get(id: string): T | undefined {
 		const entry = this.manifest.projects.find((candidate) => candidate.id === id);
 		if (!entry) return undefined;
-		let instance = this.instances.get(id);
-		if (instance === undefined) {
-			instance = this.factory(entry);
-			this.instances.set(id, instance);
+		if (!this.instances.has(id)) {
+			this.instances.set(id, this.factory(entry));
 		}
-		return instance;
+		return this.instances.get(id);
 	}
 
 	getDefault(): T {

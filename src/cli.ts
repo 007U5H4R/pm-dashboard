@@ -4258,7 +4258,7 @@ addHelpSchema(milestoneCmd.command("list"), {
 			core.filesystem.loadConfig(),
 		]);
 
-		const statuses = config?.statuses ?? ["To Do", "In Progress", "Done"];
+		const statuses = config?.statuses ?? [...DEFAULT_STATUSES];
 		const archivedMilestoneIds = collectArchivedMilestoneKeys(archivedMilestones, milestones);
 		const buckets = buildMilestoneBuckets(tasks, milestones, statuses, { archivedMilestoneIds, archivedMilestones });
 		const active = buckets.filter((bucket) => !bucket.isNoMilestone && !bucket.isCompleted);
