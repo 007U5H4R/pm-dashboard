@@ -141,7 +141,7 @@ export async function initializeProject(
 	const d = DEFAULT_INIT_CONFIG;
 	const baseConfig: BacklogConfig = {
 		projectName,
-		statuses: ["To Do", "In Progress", "Done"],
+		statuses: ["To Do", "In Progress", "In Review", "Blocked", "Done"],
 		labels: [],
 		defaultStatus: "To Do",
 		dateFormat: "yyyy-mm-dd",

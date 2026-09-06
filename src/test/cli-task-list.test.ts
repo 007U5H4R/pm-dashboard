@@ -98,7 +98,7 @@ describe("CLI Integration", () => {
 
 			// Load and verify default config status order
 			const config = await core.filesystem.loadConfig();
-			expect(config?.statuses).toEqual(["To Do", "In Progress", "Done"]);
+			expect(config?.statuses).toEqual(["To Do", "In Progress", "In Review", "Blocked", "Done"]);
 		});
 
 		it("should filter tasks by status", async () => {

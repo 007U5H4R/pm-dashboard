@@ -315,7 +315,7 @@ describe("CLI Integration", () => {
 
 			const config = await core.filesystem.loadConfig();
 			const statuses = config?.statuses || [];
-			expect(statuses).toEqual(["To Do", "In Progress", "Done"]);
+			expect(statuses).toEqual(["To Do", "In Progress", "In Review", "Blocked", "Done"]);
 
 			// Test the kanban board generation
 			const { generateKanbanBoardWithMetadata } = await import("../board.ts");
@@ -356,7 +356,7 @@ describe("CLI Integration", () => {
 
 			// Should return board with metadata, configured status columns, and empty-state message
 			expect(board).toContain("# Kanban Board Export");
-			expect(board).toContain("| To Do | In Progress | Done |");
+			expect(board).toContain("| To Do | In Progress | In Review | Blocked | Done |");
 			expect(board).toContain("No tasks found");
 		});
 

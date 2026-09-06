@@ -8,7 +8,7 @@ export function migrateConfig(config: Partial<BacklogConfig>): BacklogConfig {
 		projectName: "Untitled Project",
 		defaultEditor: "",
 		defaultStatus: "",
-		statuses: ["To Do", "In Progress", "Done"],
+		statuses: ["To Do", "In Progress", "In Review", "Blocked", "Done"],
 		labels: [],
 		dateFormat: "YYYY-MM-DD",
 		maxColumnWidth: 80,
