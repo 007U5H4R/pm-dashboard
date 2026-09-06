@@ -3,6 +3,7 @@ import type { Task } from "../../types/index.ts";
 /** Story points ride on a label because the CLI strips custom frontmatter keys (Design.md §3). */
 export const SP_LABEL_REGEX = /^sp:(\d+(?:\.\d+)?)$/;
 export const DEFAULT_DAYS_PER_POINT = 1;
+const DAY_MS = 86_400_000;
 
 export interface ScheduleOptions {
 	/** Calendar anchor for tasks with no blockers. Default: earliest createdDate, else today. */
@@ -54,4 +55,125 @@ export function percentComplete(status: string): number {
 		default:
 			return 0;
 	}
+}
+
+export function addDays(date: Date, days: number): Date {
+	return new Date(date.getTime() + days * DAY_MS);
+}
+
+export function formatIsoDate(date: Date): string {
+	return date.toISOString().slice(0, 10);
+}
+
+function startOfUtcDay(date: Date): Date {
+	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function earliestCreatedDate(tasks: readonly Task[]): Date | null {
+	let earliest: Date | null = null;
+	for (const task of tasks) {
+		const parsed = new Date(task.createdDate);
+		if (Number.isNaN(parsed.getTime())) continue;
+		if (earliest === null || parsed < earliest) earliest = parsed;
+	}
+	return earliest;
+}
+
+function isBlockedStatus(status: string): boolean {
+	return status.trim().toLowerCase() === "blocked";
+}
+
+/**
+ * Kahn topological order. Unknown dependency ids were already dropped by the caller. When no task
+ * is free (a cycle), the first remaining task in input order has its unresolved edges treated as
+ * soft (warned) so the walk always terminates.
+ */
+function topologicalOrder(tasks: readonly Task[], deps: Map<string, string[]>, warnings: string[]): string[] {
+	const remaining = new Set(tasks.map((t) => t.id));
+	const indegree = new Map<string, number>();
+	const dependents = new Map<string, string[]>();
+	for (const task of tasks) {
+		const blockers = deps.get(task.id) ?? [];
+		indegree.set(task.id, blockers.length);
+		for (const blocker of blockers) {
+			const list = dependents.get(blocker) ?? [];
+			list.push(task.id);
+			dependents.set(blocker, list);
+		}
+	}
+
+	const queue = tasks.filter((t) => (indegree.get(t.id) ?? 0) === 0).map((t) => t.id);
+	const order: string[] = [];
+	while (remaining.size > 0) {
+		if (queue.length === 0) {
+			const victim = tasks.find((t) => remaining.has(t.id));
+			if (!victim) break;
+			const unresolved = (deps.get(victim.id) ?? []).filter((d) => remaining.has(d));
+			warnings.push(`Dependency cycle detected at ${victim.id}; treating ${unresolved.join(", ")} as soft`);
+			deps.set(
+				victim.id,
+				(deps.get(victim.id) ?? []).filter((d) => !remaining.has(d)),
+			);
+			queue.push(victim.id);
+		}
+		const id = queue.shift();
+		if (id === undefined || !remaining.has(id)) continue;
+		remaining.delete(id);
+		order.push(id);
+		for (const dependent of dependents.get(id) ?? []) {
+			if (!remaining.has(dependent)) continue;
+			const next = (indegree.get(dependent) ?? 0) - 1;
+			indegree.set(dependent, next);
+			if (next <= 0) queue.push(dependent);
+		}
+	}
+	return order;
+}
+
+export function computeSchedule(tasks: readonly Task[], options: ScheduleOptions = {}): ScheduleResult {
+	const daysPerPoint = options.daysPerPoint ?? DEFAULT_DAYS_PER_POINT;
+	const warnings: string[] = [];
+	const byId = new Map(tasks.map((t) => [t.id, t]));
+	const projectStart = startOfUtcDay(options.projectStart ?? earliestCreatedDate(tasks) ?? new Date());
+
+	const deps = new Map<string, string[]>();
+	for (const task of tasks) {
+		const known: string[] = [];
+		for (const dep of task.dependencies) {
+			if (byId.has(dep)) known.push(dep);
+			else warnings.push(`${task.id}: unknown dependency ${dep} ignored`);
+		}
+		deps.set(task.id, known);
+	}
+
+	const order = topologicalOrder(tasks, deps, warnings);
+	const scheduled = new Map<string, ScheduledTask>();
+	for (const id of order) {
+		const task = byId.get(id);
+		if (!task) continue;
+		const points = parseStoryPoints(task.labels);
+		const days = (points ?? 1) * daysPerPoint;
+		const blockers = (deps.get(id) ?? [])
+			.map((dep) => scheduled.get(dep))
+			.filter((entry): entry is ScheduledTask => entry !== undefined);
+		const start = blockers.length > 0 ? new Date(Math.max(...blockers.map((b) => b.finish.getTime()))) : projectStart;
+		scheduled.set(id, {
+			id,
+			title: task.title,
+			status: task.status,
+			points,
+			estimated: points !== null,
+			days,
+			start,
+			finish: addDays(start, days),
+			percent: percentComplete(task.status),
+			blocked: isBlockedStatus(task.status),
+			dependencies: deps.get(id) ?? [],
+		});
+	}
+
+	return {
+		tasks: order.map((id) => scheduled.get(id)).filter((entry): entry is ScheduledTask => entry !== undefined),
+		warnings,
+	};
 }
