@@ -36,6 +36,7 @@ import { formatValidStatuses, getCanonicalStatuses, getValidStatuses } from "../
 import { isValidTaskId } from "../utils/task-id.ts";
 import { isAmbiguousTaskIdError, LOCAL_TASK_LOOKUP_HINT } from "../utils/task-path.ts";
 import { getVersion } from "../utils/version.ts";
+import { loadProjectsManifest, type ProjectEntry, ProjectRegistry } from "./project-registry.ts";
 
 // Regex pattern to match any prefix (letters followed by dash)
 const PREFIX_PATTERN = /^[a-zA-Z]+-/i;
@@ -223,6 +224,30 @@ const BROWSER_HOST = "127.0.0.1";
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
 
+export type ApiRequest = Request & { params: Record<string, string | undefined> };
+export type ApiRouteHandler = (req: ApiRequest) => Promise<Response>;
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+/** Keys are relative to `/api` ("/tasks", "/tasks/:id"); the dashboard mounts them under a project prefix. */
+export type ApiRouteTable = Record<string, Partial<Record<HttpMethod, ApiRouteHandler>>>;
+
+/** SPA paths served by the embedded index.html (client-side routes). */
+export const SPA_PATHS = [
+	"/",
+	"/tasks",
+	"/tasks/*",
+	"/board",
+	"/board/*",
+	"/gantt",
+	"/milestones",
+	"/drafts",
+	"/documentation",
+	"/documentation/*",
+	"/decisions",
+	"/decisions/*",
+	"/statistics",
+	"/settings",
+] as const;
+
 export async function isPortAvailable(port: number): Promise<boolean> {
 	if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) return false;
 	return new Promise((resolve) => {
@@ -247,8 +272,10 @@ export async function findNextAvailablePort(startPort: number, maxPort = MAX_POR
 
 export class BacklogServer {
 	private core: Core;
+	readonly projectPath: string;
+	readonly apiRoutes: ApiRouteTable;
 	private server: Server<unknown> | null = null;
-	private runtimeWorkingDirectory: string | null = null;
+	private dashboard: DashboardServer | null = null;
 	private projectName = "Untitled Project";
 	private sockets = new Set<ServerWebSocket<unknown>>();
 	private contentStore: ContentStore | null = null;
@@ -262,7 +289,81 @@ export class BacklogServer {
 	private storeReadyBroadcasted = false;
 
 	constructor(projectPath: string) {
+		this.projectPath = projectPath;
 		this.core = new Core(projectPath, { enableWatchers: true });
+		this.apiRoutes = this.buildApiRoutes();
+	}
+
+	private buildApiRoutes(): ApiRouteTable {
+		return {
+			"/tasks": {
+				GET: async (req) => await this.handleListTasks(req),
+				POST: async (req) => await this.handleCreateTask(req),
+			},
+			"/task/:id": {
+				GET: async (req) => await this.handleGetTask(req.params.id ?? ""),
+			},
+			"/tasks/:id": {
+				GET: async (req) => await this.handleGetTask(req.params.id ?? ""),
+				PUT: async (req) => await this.handleUpdateTask(req, req.params.id ?? ""),
+				DELETE: async (req) => await this.handleDeleteTask(req.params.id ?? ""),
+			},
+			"/tasks/:id/complete": {
+				POST: async (req) => await this.handleCompleteTask(req.params.id ?? ""),
+			},
+			"/tasks/:id/demote": {
+				POST: async (req) => await this.handleDemoteTask(req.params.id ?? ""),
+			},
+			"/statuses": { GET: async () => await this.handleGetStatuses() },
+			"/config": {
+				GET: async () => await this.handleGetConfig(),
+				PUT: async (req) => await this.handleUpdateConfig(req),
+			},
+			"/docs": {
+				GET: async () => await this.handleListDocs(),
+				POST: async (req) => await this.handleCreateDoc(req),
+			},
+			"/doc/:id": { GET: async (req) => await this.handleGetDoc(req.params.id ?? "") },
+			"/docs/:id": {
+				GET: async (req) => await this.handleGetDoc(req.params.id ?? ""),
+				PUT: async (req) => await this.handleUpdateDoc(req, req.params.id ?? ""),
+			},
+			"/decisions": {
+				GET: async () => await this.handleListDecisions(),
+				POST: async (req) => await this.handleCreateDecision(req),
+			},
+			"/decision/:id": { GET: async (req) => await this.handleGetDecision(req.params.id ?? "") },
+			"/decisions/:id": {
+				GET: async (req) => await this.handleGetDecision(req.params.id ?? ""),
+				PUT: async (req) => await this.handleUpdateDecision(req, req.params.id ?? ""),
+			},
+			"/drafts": { GET: async () => await this.handleListDrafts() },
+			"/drafts/:id/promote": { POST: async (req) => await this.handlePromoteDraft(req.params.id ?? "") },
+			"/milestones": {
+				GET: async () => await this.handleListMilestones(),
+				POST: async (req) => await this.handleCreateMilestone(req),
+			},
+			"/milestones/archived": { GET: async () => await this.handleListArchivedMilestones() },
+			"/milestones/:id": {
+				GET: async (req) => await this.handleGetMilestone(req.params.id ?? ""),
+				PUT: async (req) => await this.handleUpdateMilestone(req, req.params.id ?? ""),
+				DELETE: async (req) => await this.handleRemoveMilestone(req, req.params.id ?? ""),
+			},
+			"/milestones/:id/archive": { POST: async (req) => await this.handleArchiveMilestone(req.params.id ?? "") },
+			"/tasks/reorder": { POST: async (req) => await this.handleReorderTask(req) },
+			"/tasks/move": { POST: async (req) => await this.handleMoveTasks(req) },
+			"/tasks/cleanup": { GET: async (req) => await this.handleCleanupPreview(req) },
+			"/tasks/duplicates": {
+				GET: async () => await this.handleGetDuplicateTasks(),
+				POST: async (req) => await this.handleRepairDuplicateTasks(req),
+			},
+			"/tasks/cleanup/execute": { POST: async (req) => await this.handleCleanupExecute(req) },
+			"/version": { GET: async () => await this.handleGetVersion() },
+			"/statistics": { GET: async () => await this.handleGetStatistics() },
+			"/status": { GET: async () => await this.handleGetStatus() },
+			"/init": { POST: async (req) => await this.handleInit(req) },
+			"/search": { GET: async (req) => await this.handleSearch(req) },
+		};
 	}
 
 	private async resolveMilestoneInput(milestone: string): Promise<string> {
@@ -346,6 +447,63 @@ export class BacklogServer {
 		return this.server?.port ?? null;
 	}
 
+	/** Load config and project name; return the port/browser defaults the dashboard needs. */
+	async prepare(): Promise<{ port: number; openBrowser: boolean }> {
+		// Load config (migration is handled globally by CLI)
+		const config = await this.core.filesystem.loadConfig();
+		this.projectName = config?.projectName || "Untitled Project";
+		// Default to true if autoOpenBrowser is not explicitly set to false
+		return { port: config?.defaultPort ?? 6420, openBrowser: config?.autoOpenBrowser ?? true };
+	}
+
+	get displayName(): string {
+		return this.projectName;
+	}
+
+	handleSocketOpen(ws: ServerWebSocket<unknown>): void {
+		this.sockets.add(ws);
+		ws.send(JSON.stringify(this.browserLoadingState));
+		if (this.browserLoadingState.type === "loading") {
+			void this.ensureServicesReady().catch(() => {});
+		}
+	}
+
+	handleSocketClose(ws: ServerWebSocket<unknown>): void {
+		this.sockets.delete(ws);
+	}
+
+	serveAsset(req: Request): Promise<Response> {
+		return this.handleAssetRequest(req);
+	}
+
+	/** Release watchers, services and sockets for this project (no Bun.serve involvement). */
+	async dispose(): Promise<void> {
+		if (this.taskBroadcastTimer) clearTimeout(this.taskBroadcastTimer);
+
+		// Stop filesystem watcher first to reduce churn
+		try {
+			this.unsubscribeContentStore?.();
+			this.unsubscribeContentStore = undefined;
+		} catch {}
+
+		this.core.disposeSearchService();
+		this.core.disposeContentStore();
+		this.searchService = null;
+		this.contentStore = null;
+		this.servicesReadyPromise = null;
+		this.servicesInitialized = false;
+		this.browserLoadingState = { type: "loading", message: null };
+		this.storeReadyBroadcasted = false;
+
+		// Proactively close WebSocket connections
+		for (const ws of this.sockets) {
+			try {
+				ws.close();
+			} catch {}
+		}
+		this.sockets.clear();
+	}
+
 	private broadcastDataUpdated(scope: "tasks" | "milestones" = "tasks") {
 		// Milestone changes widen the message so clients also refetch milestone
 		// entities; the debounce keeps the widest scope seen in the window.
@@ -383,272 +541,30 @@ export class BacklogServer {
 
 	async start(port?: number, openBrowser = true): Promise<void> {
 		// Prevent duplicate starts (e.g., accidental re-entry)
-		if (this.server) {
+		if (this.dashboard) {
 			console.log("Server already running");
 			return;
 		}
-		this._stopping = false;
-		// Load config (migration is handled globally by CLI)
-		const config = await this.core.filesystem.loadConfig();
-
-		// Use config default port if no port specified
-		const finalPort = port ?? config?.defaultPort ?? 6420;
-		this.projectName = config?.projectName || "Untitled Project";
-
-		// Check if browser should open (config setting or CLI override)
-		// Default to true if autoOpenBrowser is not explicitly set to false
-		const shouldOpenBrowser = openBrowser && (config?.autoOpenBrowser ?? true);
-
-		try {
-			const serveOptions = {
-				port: finalPort,
-				hostname: BROWSER_HOST,
-				development: process.env.NODE_ENV === "development",
-				routes: {
-					"/": spaIndexHtml,
-					"/tasks": spaIndexHtml,
-					"/tasks/*": spaIndexHtml,
-					"/board": spaIndexHtml,
-					"/board/*": spaIndexHtml,
-					"/milestones": spaIndexHtml,
-					"/drafts": spaIndexHtml,
-					"/documentation": spaIndexHtml,
-					"/documentation/*": spaIndexHtml,
-					"/decisions": spaIndexHtml,
-					"/decisions/*": spaIndexHtml,
-					"/statistics": spaIndexHtml,
-					"/settings": spaIndexHtml,
-
-					// API Routes using Bun's native route syntax
-					"/api/tasks": {
-						GET: async (req: Request) => await this.handleListTasks(req),
-						POST: async (req: Request) => await this.handleCreateTask(req),
-					},
-					"/api/task/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetTask(req.params.id),
-					},
-					"/api/tasks/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetTask(req.params.id),
-						PUT: async (req: Request & { params: { id: string } }) => await this.handleUpdateTask(req, req.params.id),
-						DELETE: async (req: Request & { params: { id: string } }) => await this.handleDeleteTask(req.params.id),
-					},
-					"/api/tasks/:id/complete": {
-						POST: async (req: Request & { params: { id: string } }) => await this.handleCompleteTask(req.params.id),
-					},
-					"/api/tasks/:id/demote": {
-						POST: async (req: Request & { params: { id: string } }) => await this.handleDemoteTask(req.params.id),
-					},
-					"/api/statuses": {
-						GET: async () => await this.handleGetStatuses(),
-					},
-					"/api/config": {
-						GET: async () => await this.handleGetConfig(),
-						PUT: async (req: Request) => await this.handleUpdateConfig(req),
-					},
-					"/api/docs": {
-						GET: async () => await this.handleListDocs(),
-						POST: async (req: Request) => await this.handleCreateDoc(req),
-					},
-					"/api/doc/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetDoc(req.params.id),
-					},
-					"/api/docs/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetDoc(req.params.id),
-						PUT: async (req: Request & { params: { id: string } }) => await this.handleUpdateDoc(req, req.params.id),
-					},
-					"/api/decisions": {
-						GET: async () => await this.handleListDecisions(),
-						POST: async (req: Request) => await this.handleCreateDecision(req),
-					},
-					"/api/decision/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetDecision(req.params.id),
-					},
-					"/api/decisions/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetDecision(req.params.id),
-						PUT: async (req: Request & { params: { id: string } }) =>
-							await this.handleUpdateDecision(req, req.params.id),
-					},
-					"/api/drafts": {
-						GET: async () => await this.handleListDrafts(),
-					},
-					"/api/drafts/:id/promote": {
-						POST: async (req: Request & { params: { id: string } }) => await this.handlePromoteDraft(req.params.id),
-					},
-					"/api/milestones": {
-						GET: async () => await this.handleListMilestones(),
-						POST: async (req: Request) => await this.handleCreateMilestone(req),
-					},
-					"/api/milestones/archived": {
-						GET: async () => await this.handleListArchivedMilestones(),
-					},
-					"/api/milestones/:id": {
-						GET: async (req: Request & { params: { id: string } }) => await this.handleGetMilestone(req.params.id),
-						PUT: async (req: Request & { params: { id: string } }) =>
-							await this.handleUpdateMilestone(req, req.params.id),
-						DELETE: async (req: Request & { params: { id: string } }) =>
-							await this.handleRemoveMilestone(req, req.params.id),
-					},
-					"/api/milestones/:id/archive": {
-						POST: async (req: Request & { params: { id: string } }) => await this.handleArchiveMilestone(req.params.id),
-					},
-					"/api/tasks/reorder": {
-						POST: async (req: Request) => await this.handleReorderTask(req),
-					},
-					"/api/tasks/move": {
-						POST: async (req: Request) => await this.handleMoveTasks(req),
-					},
-					"/api/tasks/cleanup": {
-						GET: async (req: Request) => await this.handleCleanupPreview(req),
-					},
-					"/api/tasks/duplicates": {
-						GET: async () => await this.handleGetDuplicateTasks(),
-						POST: async (req: Request) => await this.handleRepairDuplicateTasks(req),
-					},
-					"/api/tasks/cleanup/execute": {
-						POST: async (req: Request) => await this.handleCleanupExecute(req),
-					},
-					"/api/version": {
-						GET: async () => await this.handleGetVersion(),
-					},
-					"/api/statistics": {
-						GET: async () => await this.handleGetStatistics(),
-					},
-					"/api/status": {
-						GET: async () => await this.handleGetStatus(),
-					},
-					"/api/init": {
-						POST: async (req: Request) => await this.handleInit(req),
-					},
-					"/api/search": {
-						GET: async (req: Request) => await this.handleSearch(req),
-					},
-					// Serve files placed under backlog/assets at /assets/<relative-path>
-					"/assets/*": {
-						GET: async (req: Request) => await this.handleAssetRequest(req),
-					},
-				},
-				fetch: async (req: Request, server: Server<unknown>) => {
-					const res = await this.handleRequest(req, server);
-
-					// Disable caching for GET/HEAD so browser always fetches latest content
-					if (req.method === "GET" || req.method === "HEAD") {
-						applyNoStoreHeaders(res.headers);
-					}
-
-					return res;
-				},
-				error: this.handleError.bind(this),
-				websocket: {
-					open: (ws: ServerWebSocket) => {
-						this.sockets.add(ws);
-						ws.send(JSON.stringify(this.browserLoadingState));
-						if (this.browserLoadingState.type === "loading") {
-							void this.ensureServicesReady().catch(() => {});
-						}
-					},
-					message(ws: ServerWebSocket) {
-						ws.send("pong");
-					},
-					close: (ws: ServerWebSocket) => {
-						this.sockets.delete(ws);
-					},
-				},
-				/* biome-ignore format: keep cast on single line below for type narrowing */
-			};
-			const bundleAssetDirectory = process.env[BUNDLE_ASSET_DIR_ENV]?.trim();
-			if (bundleAssetDirectory) {
-				this.runtimeWorkingDirectory = process.cwd();
-				process.chdir(bundleAssetDirectory);
-			}
-
-			try {
-				this.server = Bun.serve(serveOptions as unknown as Parameters<typeof Bun.serve>[0]) as Server<unknown>;
-			} catch (error) {
-				this.restoreRuntimeWorkingDirectory();
-				throw error;
-			}
-			const url = `http://${BROWSER_HOST}:${finalPort}`;
-			console.log(`🚀 Backlog.md browser interface running at ${url}`);
-			console.log(`📊 Project: ${this.projectName}`);
-			const stopKey = process.platform === "darwin" ? "Cmd+C" : "Ctrl+C";
-			console.log(`⏹️  Press ${stopKey} to stop the server`);
-
-			if (shouldOpenBrowser) {
-				console.log("🌐 Opening browser...");
-				await this.openBrowser(url);
-			} else {
-				console.log("💡 Open your browser and navigate to the URL above");
-			}
-		} catch (error) {
-			// Handle port already in use error
-			const errorCode = (error as { code?: string })?.code;
-			const errorMessage = (error as Error)?.message;
-			if (errorCode === "EADDRINUSE" || errorMessage?.includes("address already in use")) {
-				console.error(`\n❌ Error: Port ${finalPort} is already in use. Use --port to specify a different port.\n`);
-				process.exit(1);
-			}
-
-			// Handle other errors
-			console.error("❌ Failed to start server:", errorMessage || error);
-			process.exit(1);
-		}
+		const dashboard = new DashboardServer(ProjectRegistry.single(this.projectPath, () => this));
+		this.dashboard = dashboard;
+		await dashboard.start(port, openBrowser);
+		this.server = dashboard.bunServer;
 	}
 
 	private _stopping = false;
 
-	private restoreRuntimeWorkingDirectory(): void {
-		if (!this.runtimeWorkingDirectory) return;
-		process.chdir(this.runtimeWorkingDirectory);
-		this.runtimeWorkingDirectory = null;
-	}
-
 	async stop(): Promise<void> {
-		if (this.taskBroadcastTimer) clearTimeout(this.taskBroadcastTimer);
 		if (this._stopping) return;
 		this._stopping = true;
-
-		// Stop filesystem watcher first to reduce churn
-		try {
-			this.unsubscribeContentStore?.();
-			this.unsubscribeContentStore = undefined;
-		} catch {}
-
-		this.core.disposeSearchService();
-		this.core.disposeContentStore();
-		this.restoreRuntimeWorkingDirectory();
-		this.searchService = null;
-		this.contentStore = null;
-		this.servicesReadyPromise = null;
-		this.servicesInitialized = false;
-		this.browserLoadingState = { type: "loading", message: null };
-		this.storeReadyBroadcasted = false;
-
-		// Proactively close WebSocket connections
-		for (const ws of this.sockets) {
-			try {
-				ws.close();
-			} catch {}
-		}
-		this.sockets.clear();
-
-		// Attempt to stop the server but don't hang forever
-		if (this.server) {
-			const serverRef = this.server;
-			const stopPromise = (async () => {
-				try {
-					await serverRef.stop();
-				} catch {}
-			})();
-			const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
-			await Promise.race([stopPromise, timeout]);
-			this.server = null;
-			console.log("Server stopped");
-		}
-
+		const dashboard = this.dashboard;
+		this.dashboard = null;
+		this.server = null;
+		if (dashboard) await dashboard.stop();
+		else await this.dispose();
 		this._stopping = false;
 	}
 
-	private async openBrowser(url: string): Promise<void> {
+	async openBrowser(url: string): Promise<void> {
 		try {
 			await launchBrowser(url);
 		} catch (error) {
@@ -702,20 +618,6 @@ export class BacklogServer {
 			console.error("Error serving asset:", error);
 			return new Response("Internal Server Error", { status: 500 });
 		}
-	}
-
-	private async handleRequest(req: Request, server: Server<unknown>): Promise<Response> {
-		// Handle WebSocket upgrade
-		if (req.headers.get("upgrade") === "websocket") {
-			const success = server.upgrade(req, { data: undefined });
-			if (success) {
-				return new Response(null, { status: 101 }); // WebSocket upgrade response
-			}
-			return new Response("WebSocket upgrade failed", { status: 400 });
-		}
-
-		// For all other routes, return 404 since routes should handle all valid paths
-		return new Response("Not Found", { status: 404 });
 	}
 
 	// Task handlers
@@ -1533,11 +1435,6 @@ export class BacklogServer {
 		}
 	}
 
-	private handleError(error: Error): Response {
-		console.error("Server Error:", error);
-		return new Response("Internal Server Error", { status: 500 });
-	}
-
 	// Draft handlers
 	private async handleListDrafts(): Promise<Response> {
 		try {
@@ -2114,5 +2011,198 @@ export class BacklogServer {
 			const message = error instanceof Error ? error.message : "Failed to initialize project";
 			return Response.json({ error: message }, { status: 500 });
 		}
+	}
+}
+
+type SocketData = { pid: string };
+
+/**
+ * One Bun.serve for N projects. Every project's API table is mounted at /api/p/:pid/<key>;
+ * /api/<key> stays as a shim to the default project so single-project use is unchanged.
+ */
+export class DashboardServer {
+	private server: Server<SocketData> | null = null;
+	private runtimeWorkingDirectory: string | null = null;
+	private _stopping = false;
+
+	constructor(private readonly registry: ProjectRegistry<BacklogServer>) {}
+
+	static async fromManifestFile(filePath: string): Promise<DashboardServer> {
+		const manifest = await loadProjectsManifest(filePath);
+		return new DashboardServer(new ProjectRegistry(manifest, (entry: ProjectEntry) => new BacklogServer(entry.path)));
+	}
+
+	get bunServer(): Server<unknown> | null {
+		return this.server as Server<unknown> | null;
+	}
+
+	getPort(): number | null {
+		return this.server?.port ?? null;
+	}
+
+	private resolve(pid: string | undefined): BacklogServer | Response {
+		const id = pid ?? this.registry.manifest.defaultProjectId;
+		const instance = this.registry.get(id);
+		if (!instance) return Response.json({ error: `Unknown project: ${id}` }, { status: 404 });
+		return instance;
+	}
+
+	private buildRoutes(): Record<string, unknown> {
+		const routes: Record<string, unknown> = {};
+		for (const path of SPA_PATHS) routes[path] = spaIndexHtml;
+
+		routes["/api/projects"] = {
+			GET: async () =>
+				Response.json({ projects: this.registry.list(), defaultProjectId: this.registry.manifest.defaultProjectId }),
+		};
+
+		const template = this.registry.getDefault().apiRoutes;
+		for (const [key, methods] of Object.entries(template)) {
+			const scoped: Partial<Record<HttpMethod, ApiRouteHandler>> = {};
+			const legacy: Partial<Record<HttpMethod, ApiRouteHandler>> = {};
+			for (const method of Object.keys(methods) as HttpMethod[]) {
+				scoped[method] = async (req) => {
+					const target = this.resolve(req.params.pid);
+					if (target instanceof Response) return target;
+					const handler = target.apiRoutes[key]?.[method];
+					return handler ? handler(req) : new Response("Not Found", { status: 404 });
+				};
+				legacy[method] = async (req) => {
+					const handler = this.registry.getDefault().apiRoutes[key]?.[method];
+					return handler ? handler(req) : new Response("Not Found", { status: 404 });
+				};
+			}
+			routes[`/api/p/:pid${key}`] = scoped;
+			routes[`/api${key}`] = legacy;
+		}
+
+		// Serve files placed under backlog/assets at /assets/<relative-path> (default project in v1)
+		routes["/assets/*"] = { GET: async (req: Request) => await this.registry.getDefault().serveAsset(req) };
+		return routes;
+	}
+
+	private handleUpgrade(req: Request, server: Server<SocketData>): Response {
+		const url = new URL(req.url);
+		const pid = url.searchParams.get("pid") ?? this.registry.manifest.defaultProjectId;
+		if (!this.registry.has(pid)) return new Response(`Unknown project: ${pid}`, { status: 404 });
+		const success = server.upgrade(req, { data: { pid } });
+		return success ? new Response(null, { status: 101 }) : new Response("WebSocket upgrade failed", { status: 400 });
+	}
+
+	async start(port?: number, openBrowser = true): Promise<void> {
+		// Prevent duplicate starts (e.g., accidental re-entry)
+		if (this.server) {
+			console.log("Server already running");
+			return;
+		}
+		this._stopping = false;
+		const primary = this.registry.getDefault();
+		const defaults = await primary.prepare();
+		// Use config default port if no port specified
+		const finalPort = port ?? defaults.port;
+		// Check if browser should open (config setting or CLI override)
+		const shouldOpenBrowser = openBrowser && defaults.openBrowser;
+
+		try {
+			const serveOptions = {
+				port: finalPort,
+				hostname: BROWSER_HOST,
+				development: process.env.NODE_ENV === "development",
+				routes: this.buildRoutes(),
+				fetch: async (req: Request, server: Server<SocketData>) => {
+					// Handle WebSocket upgrade (root path and /ws both land here — neither is a declared route)
+					if (req.headers.get("upgrade") === "websocket") return this.handleUpgrade(req, server);
+					// For all other routes, return 404 since routes should handle all valid paths
+					const res = new Response("Not Found", { status: 404 });
+					// Disable caching for GET/HEAD so browser always fetches latest content
+					if (req.method === "GET" || req.method === "HEAD") applyNoStoreHeaders(res.headers);
+					return res;
+				},
+				error: this.handleError.bind(this),
+				websocket: {
+					open: (ws: ServerWebSocket<SocketData>) => {
+						this.registry.get(ws.data.pid)?.handleSocketOpen(ws as ServerWebSocket<unknown>);
+					},
+					message(ws: ServerWebSocket<SocketData>) {
+						ws.send("pong");
+					},
+					close: (ws: ServerWebSocket<SocketData>) => {
+						this.registry.get(ws.data.pid)?.handleSocketClose(ws as ServerWebSocket<unknown>);
+					},
+				},
+			};
+			const bundleAssetDirectory = process.env[BUNDLE_ASSET_DIR_ENV]?.trim();
+			if (bundleAssetDirectory) {
+				this.runtimeWorkingDirectory = process.cwd();
+				process.chdir(bundleAssetDirectory);
+			}
+
+			try {
+				this.server = Bun.serve(serveOptions as unknown as Parameters<typeof Bun.serve>[0]) as Server<SocketData>;
+			} catch (error) {
+				this.restoreRuntimeWorkingDirectory();
+				throw error;
+			}
+			const url = `http://${BROWSER_HOST}:${finalPort}`;
+			console.log(`🚀 Backlog.md browser interface running at ${url}`);
+			const names = this.registry.list().map((entry) => entry.name);
+			console.log(names.length > 1 ? `📊 Projects: ${names.join(", ")}` : `📊 Project: ${primary.displayName}`);
+			const stopKey = process.platform === "darwin" ? "Cmd+C" : "Ctrl+C";
+			console.log(`⏹️  Press ${stopKey} to stop the server`);
+
+			if (shouldOpenBrowser) {
+				console.log("🌐 Opening browser...");
+				await primary.openBrowser(url);
+			} else {
+				console.log("💡 Open your browser and navigate to the URL above");
+			}
+		} catch (error) {
+			// Handle port already in use error
+			const errorCode = (error as { code?: string })?.code;
+			const errorMessage = (error as Error)?.message;
+			if (errorCode === "EADDRINUSE" || errorMessage?.includes("address already in use")) {
+				console.error(`\n❌ Error: Port ${finalPort} is already in use. Use --port to specify a different port.\n`);
+				process.exit(1);
+			}
+
+			// Handle other errors
+			console.error("❌ Failed to start server:", errorMessage || error);
+			process.exit(1);
+		}
+	}
+
+	private handleError(error: Error): Response {
+		console.error("Server Error:", error);
+		return new Response("Internal Server Error", { status: 500 });
+	}
+
+	private restoreRuntimeWorkingDirectory(): void {
+		if (!this.runtimeWorkingDirectory) return;
+		process.chdir(this.runtimeWorkingDirectory);
+		this.runtimeWorkingDirectory = null;
+	}
+
+	async stop(): Promise<void> {
+		if (this._stopping) return;
+		this._stopping = true;
+
+		for (const instance of this.registry.created()) await instance.dispose();
+		this.restoreRuntimeWorkingDirectory();
+
+		// Attempt to stop the server but don't hang forever
+		if (this.server) {
+			const serverRef = this.server;
+			const stopPromise = (async () => {
+				try {
+					await serverRef.stop();
+				} catch {}
+			})();
+			const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
+			await Promise.race([stopPromise, timeout]);
+			this.server = null;
+			console.log("Server stopped");
+		}
+
+		this._stopping = false;
 	}
 }
