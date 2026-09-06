@@ -1139,7 +1139,7 @@ function ProjectScopedApp() {
   if (projectId !== null && loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900" role="status">
-        <LoadingSpinner size="md" text="" />
+        <LoadingSpinner size="md" text="Loading project…" />
         <span className="sr-only">Loading</span>
       </div>
     );

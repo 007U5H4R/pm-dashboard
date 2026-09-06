@@ -39,16 +39,18 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
   if (loadError && tasks.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" role="alert">
-        <p className="text-sm text-red-600 dark:text-red-400 mb-3">{loadError.message}</p>
-        {onRetry && (
-          <button
-            type="button"
-            onClick={onRetry}
-            className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
-          >
-            Retry
-          </button>
-        )}
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-400 mb-3">{loadError.message}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       </div>
     );
   }
