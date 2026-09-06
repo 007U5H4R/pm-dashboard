@@ -28,7 +28,7 @@ import {
 	type TaskSearchResult,
 } from '../types';
 import { formatDependencyCleanupMessage } from '../utils/dependency-graph';
-import { ApiError, apiClient, readMovedFailureState } from './lib/api';
+import { ApiError, apiClient, buildWebSocketUrl, readMovedFailureState } from './lib/api';
 import type { TaskDetail } from '../core/task-detail';
 import type { DuplicateRepairPlan } from '../core/duplicate-task-repair';
 import { isValidTaskId } from '../utils/task-id';
@@ -803,8 +803,7 @@ function AppContent() {
   }, [detailSession, detailId, dataVersion]);
 
   useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${protocol}//${window.location.host}`);
+    const ws = new WebSocket(buildWebSocketUrl());
 	let disposed = false;
     ws.onmessage = (event) => {
 	  const loadingState = parseBrowserLoadingState(event.data);

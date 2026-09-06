@@ -13,7 +13,45 @@ import type {
 	TaskStatus,
 } from "../../types/index.ts";
 
-const API_BASE = "/api";
+const PROJECT_STORAGE_KEY = "pm.activeProjectId";
+let activeProjectId: string | null = null;
+let API_BASE = "/api";
+
+/** Set (or clear) the project every API call and the WebSocket subscribe to. Null = legacy single-project `/api`. */
+export function setActiveProjectId(projectId: string | null): void {
+	activeProjectId = projectId;
+	API_BASE = projectId ? `/api/p/${encodeURIComponent(projectId)}` : "/api";
+}
+
+export function getActiveProjectId(): string | null {
+	return activeProjectId;
+}
+
+export function getApiBase(): string {
+	return API_BASE;
+}
+
+export function readStoredProjectId(): string | null {
+	try {
+		return typeof localStorage === "undefined" ? null : localStorage.getItem(PROJECT_STORAGE_KEY);
+	} catch {
+		return null;
+	}
+}
+
+export function storeProjectId(projectId: string): void {
+	try {
+		localStorage.setItem(PROJECT_STORAGE_KEY, projectId);
+	} catch {
+		// storage unavailable (private mode) – selection simply won't persist
+	}
+}
+
+export function buildWebSocketUrl(): string {
+	const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+	const pid = activeProjectId ? `?pid=${encodeURIComponent(activeProjectId)}` : "";
+	return `${protocol}//${window.location.host}/ws${pid}`;
+}
 
 export interface ReorderTaskPayload {
 	taskId: string;
