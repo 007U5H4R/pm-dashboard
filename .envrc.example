@@ -1,0 +1,5 @@
+# Source this before working in backlog-md-fork (keeps every Bun write on the E Drive)
+export BUN_INSTALL="/Volumes/E Drive/Dev/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export TMPDIR="/Volumes/E Drive/Dev/.scratch/tmp"
+export BUN_INSTALL_CACHE_DIR="/Volumes/E Drive/Dev/.bun/install/cache"
