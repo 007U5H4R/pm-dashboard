@@ -55,7 +55,7 @@ describe("CustomGantt", () => {
 		expect(html).toContain('data-testid="gantt-bar-TASK-2"');
 	});
 
-	it("maps status to the expected bar color", () => {
+	it("maps status to the expected pastel bar color", () => {
 		const html = render([
 			task("TASK-1", { title: "Done task", status: "Done" }),
 			task("TASK-2", { title: "In progress task", status: "In Progress" }),
@@ -63,11 +63,18 @@ describe("CustomGantt", () => {
 			task("TASK-4", { title: "Blocked task", status: "Blocked" }),
 			task("TASK-5", { title: "To do task", status: "To Do" }),
 		]);
-		expect(html).toContain('data-testid="gantt-bar-fill-TASK-1" class="h-full rounded-full" style="width:100%;background-color:#10b981"');
-		expect(html).toContain('data-testid="gantt-bar-fill-TASK-2" class="h-full rounded-full" style="width:50%;background-color:#3b82f6"');
-		expect(html).toContain('data-testid="gantt-bar-fill-TASK-3" class="h-full rounded-full" style="width:75%;background-color:#3b82f6"');
-		expect(html).toContain('data-testid="gantt-bar-fill-TASK-4" class="h-full rounded-full" style="width:0%;background-color:#ef4444"');
-		expect(html).toContain('data-testid="gantt-bar-fill-TASK-5" class="h-full rounded-full" style="width:0%;background-color:#d1d5db"');
+		const fillColorFor = (id: string) => {
+			const marker = `data-testid="gantt-bar-fill-${id}"`;
+			const start = html.indexOf(marker);
+			const styleStart = html.indexOf('background-color:', start);
+			const styleEnd = html.indexOf(';', styleStart);
+			return html.slice(styleStart + "background-color:".length, styleEnd);
+		};
+		expect(fillColorFor("TASK-1")).toBe("#86E3CE");
+		expect(fillColorFor("TASK-2")).toBe("#D0E6A5");
+		expect(fillColorFor("TASK-3")).toBe("#FFDD94");
+		expect(fillColorFor("TASK-4")).toBe("#FA897B");
+		expect(fillColorFor("TASK-5")).toBe("#CCABD8");
 	});
 
 	it("shows an avatar with initials for an assigned task and none for an unassigned one", () => {
