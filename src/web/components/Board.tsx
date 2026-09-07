@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BOARD_BG } from '../assets/boardBg';
 import { type Milestone, type Task } from '../../types';
 import { apiClient, type ReorderTaskPayload } from '../lib/api';
 import { buildLanes, DEFAULT_LANE_KEY, groupTasksByLaneAndStatus, type LaneMode, sortTasksForStatus } from '../lib/lanes';
@@ -48,10 +47,10 @@ interface BoardProps {
 }
 
 const BOARD_FILTER_SELECT_CLASS =
-  'min-w-[140px] h-10 py-2 px-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition-colors duration-200';
+  'min-w-[140px] h-10 py-2 px-3 text-sm border border-white/40 dark:border-white/10 rounded-lg bg-white/60 dark:bg-gray-800/50 backdrop-blur-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition-colors duration-200';
 
 const BOARD_FILTER_BUTTON_CLASS =
-  'h-10 py-2 px-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg whitespace-nowrap transition-colors duration-200 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700';
+  'h-10 py-2 px-3 text-sm border border-white/40 dark:border-white/10 rounded-lg whitespace-nowrap transition-colors duration-200 text-gray-700 dark:text-gray-200 bg-white/60 dark:bg-gray-800/50 backdrop-blur-md hover:bg-white/80 dark:hover:bg-gray-700/60';
 
 const Board: React.FC<BoardProps> = ({
   onEditTask,
@@ -658,19 +657,6 @@ const Board: React.FC<BoardProps> = ({
         if (selectedTaskIds.length > 0 && event.target === event.currentTarget) clearSelection();
       }}
     >
-      {/* Decorative backdrop for the frosted-glass board: the warm gradient image, plus a light
-          scrim so text that sits directly on it (headings, column titles) keeps enough contrast.
-          `isolate` on the root above gives this its own stacking context so the `-z-10` layers
-          stay behind the board's own columns and cards instead of escaping to the app shell's
-          stacking context and landing under Layout's opaque page background (the bug that made
-          an earlier backdrop attempt invisible). */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center"
-        style={{ backgroundImage: `url(${BOARD_BG})` }}
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-white/25 dark:bg-black/30" />
-
       {updateError && (
         <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-700 dark:bg-red-900/40 dark:text-red-200 transition-colors duration-200">
           {updateError}
@@ -680,7 +666,7 @@ const Board: React.FC<BoardProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-200">Kanban Board</h2>
           <button
-            className="inline-flex items-center px-4 py-2 bg-blue-500 dark:bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+            className="inline-flex items-center px-4 py-2 bg-blue-500/90 dark:bg-blue-600/90 backdrop-blur-sm border border-white/20 text-white text-sm font-medium rounded-md shadow-lg shadow-blue-500/20 hover:bg-blue-600/90 dark:hover:bg-blue-700/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
             onClick={onNewTask}
           >
             + New Task
@@ -725,13 +711,13 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-3" role="toolbar" aria-label="Board view controls">
-            <div className="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 p-1 bg-gray-50 dark:bg-gray-800/50 transition-colors duration-200">
+            <div className="inline-flex rounded-lg border border-white/40 dark:border-white/10 p-1 bg-white/40 dark:bg-gray-800/30 backdrop-blur-md transition-colors duration-200">
               <button
                 type="button"
                 onClick={() => onLaneChange('none')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   laneMode === 'none'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                    ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
@@ -746,7 +732,7 @@ const Board: React.FC<BoardProps> = ({
                   !hasTasksWithMilestones
                     ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
                     : laneMode === 'milestone'
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
+                      ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
