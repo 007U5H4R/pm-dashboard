@@ -240,10 +240,10 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
         isEmpty ? 'min-h-24' : 'min-h-96'
       } ${
         isDragOver && (dragSourceStatus !== title || (dragSourceLane ?? null) !== (laneId ?? null))
-          ? 'bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-600 border-dashed'
+          ? 'bg-green-50/80 dark:bg-green-900/30 border border-green-300 dark:border-green-600 border-dashed backdrop-blur-[2px]'
           : isEmpty
-            ? 'bg-gray-50/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700/50'
-            : 'bg-white border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700'
+            ? 'bg-white/10 dark:bg-white/5 border border-white/15 dark:border-white/5'
+            : 'bg-white/15 dark:bg-white/[0.04] border border-white/15 dark:border-white/5 backdrop-blur-[2px]'
       }`}
       onDrop={handleDrop}
       onDragOver={handleDragOverColumn}

@@ -652,11 +652,20 @@ const Board: React.FC<BoardProps> = ({
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already clears the selection for keyboard users.
     <div
-      className="w-full"
+      className="relative w-full"
       onClick={(event) => {
         if (selectedTaskIds.length > 0 && event.target === event.currentTarget) clearSelection();
       }}
     >
+      {/* Decorative blurred backdrop for the frosted-glass board. Muted color blobs, kept behind
+          every column and card so the frost reads as glass without hurting text contrast. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-indigo-300/40 dark:bg-indigo-500/15 blur-3xl" />
+        <div className="absolute top-1/4 -right-20 h-80 w-80 rounded-full bg-rose-300/30 dark:bg-rose-500/10 blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-teal-300/30 dark:bg-teal-500/10 blur-3xl" />
+        <div className="absolute bottom-10 right-1/3 h-72 w-72 rounded-full bg-violet-300/30 dark:bg-violet-600/10 blur-3xl" />
+      </div>
+
       {updateError && (
         <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-700 dark:bg-red-900/40 dark:text-red-200 transition-colors duration-200">
           {updateError}
