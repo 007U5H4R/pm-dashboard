@@ -9,10 +9,16 @@ const projects = [
 ];
 
 describe("ProjectSwitcher", () => {
-	it("renders nothing with fewer than two projects", () => {
+	it("renders the single project's name when there is exactly one project", () => {
 		const html = renderToString(
 			<ProjectSwitcherView projects={projects.slice(0, 1)} activeProjectId="alpha" onSelect={() => {}} />,
 		);
+		expect(html).toContain("Alpha");
+		expect(html).not.toBe("");
+	});
+
+	it("renders nothing with zero projects", () => {
+		const html = renderToString(<ProjectSwitcherView projects={[]} activeProjectId={null} onSelect={() => {}} />);
 		expect(html).toBe("");
 	});
 

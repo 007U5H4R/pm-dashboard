@@ -30,7 +30,7 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 		};
 	}, [isOpen]);
 
-	if (projects.length < 2) return null;
+	if (projects.length === 0) return null;
 	const active = projects.find(p => p.id === activeProjectId) ?? projects[0];
 	if (!active) return null;
 
