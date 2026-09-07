@@ -12,7 +12,7 @@ import {
 } from '../../types';
 import ErrorBoundary from './ErrorBoundary';
 import ProjectSwitcher from './ProjectSwitcher';
-import { CAMPFIRE_LOGO } from '../assets/logo';
+import { CAMPFIRE_LOGO, CAMPFIRE_WORDMARK } from '../assets/logo';
 import { createUrlPath, sanitizeUrlTitle } from '../utils/urlHelpers';
 import { apiClient } from '../lib/api';
 import { parseSearchCommandQuery } from '../utils/search-command-query';
@@ -500,9 +500,10 @@ const SideNavigation = memo(function SideNavigation({
 			<div className={`flex items-center border-b border-gray-200 dark:border-gray-800 ${isCollapsed ? 'justify-center py-3' : 'gap-2.5 px-4 py-3'}`}>
 				<img src={CAMPFIRE_LOGO} alt="Campfire Board" className="w-9 h-9 shrink-0" />
 				{!isCollapsed && (
-					<span className="font-serif font-bold uppercase tracking-wider text-sm bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 bg-clip-text text-transparent">
-						Campfire Board
-					</span>
+					<div className="flex flex-col leading-none">
+						<img src={CAMPFIRE_WORDMARK} alt="Campfire" className="h-7 w-auto" />
+						<span className="mt-1 text-[10px] font-bold uppercase tracking-[0.35em] text-gray-500 dark:text-gray-400">Board</span>
+					</div>
 				)}
 			</div>
 			{!isCollapsed && <ProjectSwitcher />}
