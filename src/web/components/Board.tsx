@@ -718,7 +718,7 @@ const Board: React.FC<BoardProps> = ({
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   laneMode === 'none'
                     ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    : 'text-white/90 hover:text-white'
                 }`}
               >
                 All Tasks
@@ -730,10 +730,10 @@ const Board: React.FC<BoardProps> = ({
                 title={!hasTasksWithMilestones ? 'No tasks have milestones. Assign milestones to tasks first.' : 'Group tasks by milestone'}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
                   !hasTasksWithMilestones
-                    ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                    ? 'text-white cursor-not-allowed opacity-50'
                     : laneMode === 'milestone'
                       ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                      : 'text-white/90 hover:text-white'
                 }`}
               >
                 Milestone
