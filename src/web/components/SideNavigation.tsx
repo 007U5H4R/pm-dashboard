@@ -465,14 +465,14 @@ const SideNavigation = memo(function SideNavigation({
 
 	return (
 		<ErrorBoundary>
-			<div className={`relative bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
+			<div className={`relative bg-white/55 dark:bg-gray-900/45 backdrop-blur-lg border-r border-white/30 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
 			{!isCollapsed && <ProjectSwitcher />}
 			{/* Search Bar */}
-			<div className={`${isCollapsed ? 'px-2' : 'px-4'} border-b border-gray-200 dark:border-gray-700 h-18 flex items-center relative`}>
+			<div className={`${isCollapsed ? 'px-2' : 'px-4'} border-b border-white/30 dark:border-white/10 h-18 flex items-center relative`}>
 				{/* Collapse Toggle Button - Always positioned on the border */}
 				<button
 					onClick={toggleCollapse}
-					className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-circle shadow-sm hover:shadow-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200"
+					className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center w-6 h-6 bg-white/80 dark:bg-gray-800/70 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-circle shadow-sm hover:shadow-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200"
 					aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 					title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 				>
@@ -491,7 +491,7 @@ const SideNavigation = memo(function SideNavigation({
 								placeholder="Search (⌘K)..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 focus:border-transparent transition-colors duration-200"
+								className="w-full pl-10 pr-8 py-2 border border-white/40 dark:border-white/10 rounded-lg bg-white/70 dark:bg-gray-800/60 backdrop-blur-md text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 focus:border-transparent transition-colors duration-200"
 							/>
 								{searchQuery && (
 									<button

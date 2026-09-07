@@ -226,7 +226,7 @@ const expectBoardFiltersInHeader = (container: HTMLElement) => {
 		expect(select?.className).toContain("min-w-[140px]");
 		expect(select?.className).toContain("h-10");
 		expect(select?.className).toContain("rounded-lg");
-		expect(select?.className).toContain("border-gray-300");
+		expect(select?.className).toContain("border-white/40");
 		expect(select?.className).toContain("focus:ring-stone-500");
 	}
 
@@ -235,7 +235,7 @@ const expectBoardFiltersInHeader = (container: HTMLElement) => {
 	expect(toolbar?.contains(labelsButton)).toBe(true);
 	expect(labelsButton.className).toContain("min-w-[200px]");
 	expect(labelsButton.className).toContain("rounded-lg");
-	expect(labelsButton.className).toContain("border-gray-300");
+	expect(labelsButton.className).toContain("border-white/40");
 	expect(labelsButton.className).toContain("focus:ring-stone-500");
 };
 

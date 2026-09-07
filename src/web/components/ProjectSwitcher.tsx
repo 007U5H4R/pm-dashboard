@@ -42,7 +42,7 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 				aria-expanded={isOpen}
 				aria-label="Switch project"
 				onClick={() => setIsOpen(v => !v)}
-				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400"
+				className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-white/40 dark:border-white/10 bg-white/60 dark:bg-gray-800/50 backdrop-blur-md text-sm font-medium text-gray-900 dark:text-gray-100 hover:bg-white/80 dark:hover:bg-gray-800/70 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400"
 			>
 				<span className="flex items-center gap-2 min-w-0">
 					<span className="w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-semibold flex items-center justify-center shrink-0">
@@ -64,7 +64,7 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 				<ul
 					role="menu"
 					aria-label="Projects"
-					className="absolute left-4 right-4 mt-1 z-20 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 max-h-72 overflow-auto"
+					className="absolute left-4 right-4 mt-1 z-20 rounded-lg border border-white/40 dark:border-white/10 bg-white/90 dark:bg-gray-900/85 backdrop-blur-lg shadow-lg py-1 max-h-72 overflow-auto"
 				>
 					{projects.map(project => {
 						const selected = project.id === active.id;
