@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import SideNavigation from './SideNavigation';
 import Navigation from './Navigation';
 import { useAppearance } from '../contexts/AppearanceContext';
@@ -36,13 +36,10 @@ export default function Layout({
 	onRefreshData,
 	duplicateRepairPlan = null,
 }: LayoutProps) {
-	const location = useLocation();
 	const { appearance } = useAppearance();
-	// Doodle background shows on every page EXCEPT the board, Gantt, and Workflow (those keep their
-	// own backgrounds). The doodle is the project's chosen one, else its theme default.
-	const doodleExcluded = ['/gantt', '/workflow'].some((p) => location.pathname.startsWith(p));
+	// Doodle background shows on every page — the project's chosen doodle, else its theme default.
 	const doodleKey = appearance.doodleBg || projectTheme(projectName);
-	const doodleUrl = !doodleExcluded ? DOODLES[doodleKey] : undefined;
+	const doodleUrl = DOODLES[doodleKey];
 	return (
 		<div className="relative isolate h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200">
 			<HealthIndicator />

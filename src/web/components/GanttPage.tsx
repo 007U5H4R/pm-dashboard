@@ -3,10 +3,6 @@ import type { Task } from '../../types';
 import { computeSchedule } from '../lib/schedule';
 import CustomGantt from './CustomGantt';
 import LoadingSpinner from './LoadingSpinner';
-import { BOARD_BG } from '../assets/boardBg';
-import { GANTT_BACKGROUNDS } from '../assets/gantt-backgrounds';
-import { useAppearance } from '../contexts/AppearanceContext';
-import { useBgBrightness } from '../lib/use-bg-brightness';
 
 export interface GanttPageProps {
   tasks: Task[];
@@ -27,12 +23,8 @@ const LEGEND: Array<{ label: string; hex: string }> = [
 export default function GanttPage({ tasks, isLoading, loadError, projectName, onRetry }: GanttPageProps) {
   const schedule = useMemo(() => computeSchedule(tasks), [tasks]);
   const unestimated = schedule.tasks.filter(t => !t.estimated).length;
-  const { appearance } = useAppearance();
-  const chosenBg = appearance.ganttBg;
-  const ganttBgUrl = chosenBg ? (chosenBg.startsWith('data:') ? chosenBg : GANTT_BACKGROUNDS[chosenBg]) || BOARD_BG : BOARD_BG;
-  const tone = useBgBrightness(ganttBgUrl);
-  const headText = tone === 'light' ? 'text-gray-900' : 'text-white';
-  const subText = tone === 'light' ? 'text-gray-700' : 'text-white/75';
+  const headText = 'text-gray-900 dark:text-gray-100';
+  const subText = 'text-gray-500 dark:text-gray-400';
 
   if (isLoading && tasks.length === 0) {
     return (
@@ -64,10 +56,10 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
 
   if (tasks.length === 0) {
     return (
-      <div className={`flex-1 flex flex-col items-center justify-center p-8 text-center ${subText} bg-cover bg-center`} style={{ backgroundImage: `url(${ganttBgUrl})` }}>
+      <div className={`flex-1 flex flex-col items-center justify-center p-8 text-center ${subText}`}>
         <p className={`text-base font-medium ${headText}`}>No tickets yet</p>
         <p className="text-sm mt-1">
-          Create tasks with an <code className="px-1 rounded bg-white/10 border border-white/15 text-white/80">sp:&lt;n&gt;</code> label and
+          Create tasks with an <code className="px-1 rounded bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">sp:&lt;n&gt;</code> label and
           dependencies to see them here.
         </p>
       </div>
@@ -75,14 +67,14 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6 bg-cover bg-center" style={{ backgroundImage: `url(${ganttBgUrl})` }}>
+    <div className="flex-1 overflow-auto p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className={`text-xl font-semibold ${headText}`}>Gantt · {projectName}</h1>
         <ul className={`flex flex-wrap gap-3 text-xs ${subText}`}>
           {LEGEND.map(item => (
             <li key={item.label} className="flex items-center gap-1.5">
               <span
-                className="inline-block w-3 h-3 rounded-[4px] border border-white/30"
+                className="inline-block w-3 h-3 rounded-[4px] border border-black/10"
                 style={{ backgroundColor: item.hex, opacity: 0.85 }}
               />
               {item.label}

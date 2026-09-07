@@ -65,7 +65,7 @@ function ProgressRing({ percent, color }: { percent: number; color: string }) {
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          className="stroke-white/20"
+          className="stroke-gray-200 dark:stroke-gray-600"
         />
         <circle
           cx={size / 2}
@@ -94,7 +94,7 @@ function GanttBar({ task, left, width }: { task: ScheduledTask; left: number; wi
     <div
       data-testid={`gantt-bar-${task.id}`}
       data-status={task.blocked ? 'blocked' : status}
-      className="absolute top-1/2 -translate-y-1/2 h-7 rounded-full bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 backdrop-blur-sm overflow-hidden"
+      className="absolute top-1/2 -translate-y-1/2 h-7 rounded-full bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 overflow-hidden"
       style={{
         left,
         width: Math.max(width, HOUR_WIDTH * 0.4),
@@ -116,7 +116,7 @@ function GanttBar({ task, left, width }: { task: ScheduledTask; left: number; wi
       />
       {isDone && (
         <svg
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-700 dark:text-white"
           width="12"
           height="12"
           viewBox="0 0 24 24"
@@ -179,7 +179,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
   if (scheduledTasks.length === 0) {
     return (
       <div
-        className="bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-8 text-center text-sm text-white/70"
+        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-8 text-center text-sm text-gray-500 dark:text-gray-400"
         data-testid="gantt-empty"
       >
         No tasks to schedule.
@@ -224,7 +224,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
 
   return (
     <div
-      className="bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-3 overflow-hidden"
+      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-3 overflow-hidden"
       aria-label={`Gantt chart · ${projectName}`}
     >
       {/* Inner scroller carries the overflow; the padding lives on the outer frame so scrolling content
@@ -233,24 +233,24 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
         <div className="relative" style={{ width: LEFT_PANEL_WIDTH + gridWidth, minWidth: '100%' }}>
         {/* Header */}
         <div
-          className="flex sticky top-0 z-40 border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 shadow-lg shadow-black/20 dark:shadow-black/40 mb-2"
-          style={{ backgroundColor: '#140e17' }}
+          className="flex sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700 mb-2"
+          style={{ backgroundColor: '#ffffff' }}
         >
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-white/70"
-            style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
+            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-gray-500 dark:text-gray-400"
+            style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#ffffff' }}
           >
             <span className="flex-1">Title</span>
             <span className="w-16">Est. hours</span>
             <span className="w-20 text-right">Status</span>
           </div>
           <div style={{ width: gridWidth }}>
-            <div className="flex h-5 items-center px-1.5 text-[11px] font-semibold text-white/70">Elapsed hours</div>
+            <div className="flex h-5 items-center px-1.5 text-[11px] font-semibold text-gray-500 dark:text-gray-400">Elapsed hours</div>
             <div className="flex" style={{ height: ROW_HEIGHT - 20 }}>
               {ticks.slice(0, -1).map(tick => (
                 <div
                   key={tick.hour}
-                  className="shrink-0 flex items-center justify-start pl-1 text-[10px] font-medium text-white/60 border-l border-white/10"
+                  className="shrink-0 flex items-center justify-start pl-1 text-[10px] font-medium text-gray-400 dark:text-gray-500 border-l border-gray-100 dark:border-gray-700"
                   style={{ width: HOUR_WIDTH }}
                 >
                   {tick.label}
@@ -272,20 +272,20 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
                 className="flex mb-1.5"
               >
                 <div
-                  className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 border border-white/10 dark:border-white/5"
-                  style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
+                  className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 border-b border-gray-100 dark:border-gray-700/60"
+                  style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#ffffff' }}
                 >
                   <span
-                    className="flex-1 truncate text-sm font-medium text-white cursor-default"
+                    className="flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100 cursor-default"
                     title={task.title}
                   >
                     {task.title}
                   </span>
-                  <span className="w-16 text-xs font-medium text-white/70">
+                  <span className="w-16 text-xs font-medium text-gray-500 dark:text-gray-400">
                     {hoursLabel(task)}
                   </span>
                   <span className="w-20 flex items-center justify-end gap-2">
-                    <span className="text-xs font-medium text-white/70">{`${task.percent}%`}</span>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{`${task.percent}%`}</span>
                     <ProgressRing percent={task.percent} color={color} />
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
                   style={{
                     width: gridWidth,
                     height: ROW_HEIGHT,
-                    backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px)',
+                    backgroundImage: 'linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px)',
                     backgroundSize: `${HOUR_WIDTH}px 100%`,
                   }}
                 >
@@ -316,7 +316,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
             >
               <defs>
                 <marker id="gantt-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
-                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.5)" />
+                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(15,23,42,0.4)" />
                 </marker>
               </defs>
               {connectors.map(connector => (
@@ -324,7 +324,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
                   key={connector.key}
                   d={connector.path}
                   fill="none"
-                  stroke="rgba(255,255,255,0.35)"
+                  stroke="rgba(15,23,42,0.3)"
                   strokeWidth={1.5}
                   strokeDasharray="4 3"
                   markerEnd="url(#gantt-arrow)"

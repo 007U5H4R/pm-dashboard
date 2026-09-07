@@ -1,8 +1,7 @@
-import { useState, type ChangeEvent } from 'react';
+import { useState } from 'react';
 import { useAppearance } from '../contexts/AppearanceContext';
 import { ProjectIcon, PROJECT_ICON_THEMES } from './ProjectIcon';
 import { DOODLES, DOODLE_KEYS } from '../assets/doodles';
-import { GANTT_BACKGROUNDS, GANTT_BG_KEYS } from '../assets/gantt-backgrounds';
 import type { AppearanceSettings as AppearanceValues } from '../lib/api';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -25,35 +24,6 @@ export default function AppearanceSettings() {
 			setBusy(false);
 		}
 	};
-
-	// Upload a custom Gantt/Workflow background from the browser: downscale to keep it light, store as
-	// a data URI in the ganttBg field (the pages accept either a preset key or a data: URI).
-	const onUploadGanttBg = (e: ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		e.target.value = '';
-		if (!file) return;
-		const reader = new FileReader();
-		reader.onload = () => {
-			const img = new Image();
-			img.onload = () => {
-				const maxW = 1400;
-				const scale = Math.min(1, maxW / img.width);
-				const w = Math.max(1, Math.round(img.width * scale));
-				const h = Math.max(1, Math.round(img.height * scale));
-				const canvas = document.createElement('canvas');
-				canvas.width = w;
-				canvas.height = h;
-				const ctx = canvas.getContext('2d');
-				if (!ctx) return;
-				ctx.drawImage(img, 0, 0, w, h);
-				void pick({ ganttBg: canvas.toDataURL('image/jpeg', 0.72) });
-			};
-			img.src = reader.result as string;
-		};
-		reader.readAsDataURL(file);
-	};
-
-	const customGanttBg = appearance.ganttBg?.startsWith('data:') ? appearance.ganttBg : undefined;
 
 	return (
 		<div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
@@ -127,43 +97,6 @@ export default function AppearanceSettings() {
 					</div>
 				</section>
 
-				{/* Gantt / Workflow background */}
-				<section>
-					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Execution Gantt &amp; Workflow background</h3>
-					<div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-						{GANTT_BG_KEYS.map((k) => (
-							<button
-								key={k}
-								type="button"
-								title={cap(k)}
-								onClick={() => pick({ ganttBg: k })}
-								className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-colors ${
-									(appearance.ganttBg ?? '') === k ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
-								}`}
-							>
-								<img src={GANTT_BACKGROUNDS[k]} alt={cap(k)} className="w-full h-full object-cover" />
-								<span className="absolute bottom-0 inset-x-0 bg-black/45 text-white text-[10px] py-0.5 text-center">{cap(k)}</span>
-							</button>
-						))}
-						{customGanttBg && (
-							<div
-								className={`relative aspect-video rounded-xl overflow-hidden border-2 ${'border-indigo-500'}`}
-								title="Custom (uploaded)"
-							>
-								<img src={customGanttBg} alt="Custom" className="w-full h-full object-cover" />
-								<span className="absolute bottom-0 inset-x-0 bg-black/45 text-white text-[10px] py-0.5 text-center">Custom</span>
-							</div>
-						)}
-						<label
-							className="relative aspect-video rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-500 cursor-pointer transition-colors"
-							title="Upload your own image"
-						>
-							<svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
-							<span className="text-[10px] font-medium">Upload</span>
-							<input type="file" accept="image/*" className="hidden" onChange={onUploadGanttBg} />
-						</label>
-					</div>
-				</section>
 			</div>
 		</div>
 	);
