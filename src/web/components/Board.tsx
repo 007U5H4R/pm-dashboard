@@ -48,10 +48,10 @@ interface BoardProps {
 }
 
 const BOARD_FILTER_SELECT_CLASS =
-  'min-w-[140px] h-10 py-2 px-3 text-sm border border-white/40 dark:border-white/10 rounded-lg bg-white/60 dark:bg-gray-800/50 backdrop-blur-md text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 transition-colors duration-200';
+  'min-w-[140px] h-10 py-2 px-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 transition-colors duration-200';
 
 const BOARD_FILTER_BUTTON_CLASS =
-  'h-10 py-2 px-3 text-sm border border-white/40 dark:border-white/10 rounded-lg whitespace-nowrap transition-colors duration-200 text-gray-700 dark:text-gray-200 bg-white/60 dark:bg-gray-800/50 backdrop-blur-md hover:bg-white/80 dark:hover:bg-gray-700/60';
+  'h-10 py-2 px-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg whitespace-nowrap transition-colors duration-200 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/60';
 
 const Board: React.FC<BoardProps> = ({
   onEditTask,
@@ -665,7 +665,7 @@ const Board: React.FC<BoardProps> = ({
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already clears the selection for keyboard users.
     <div
-      className="relative isolate w-full"
+      className="relative isolate w-full min-h-full bg-gray-50 dark:bg-gray-900"
       onClick={(event) => {
         if (selectedTaskIds.length > 0 && event.target === event.currentTarget) clearSelection();
       }}

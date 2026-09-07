@@ -5,6 +5,7 @@ import type { Task } from '../../types';
 import { formatPriorityLabel } from '../../utils/priority-config';
 import LoadingSpinner from './LoadingSpinner';
 import StoredDate from './StoredDate';
+import { DOODLES } from '../assets/doodles';
 
 interface StatisticsData extends Omit<TaskStatistics, 'statusCounts' | 'priorityCounts'> {
 	statusCounts: Record<string, number>;
@@ -319,8 +320,19 @@ const Statistics: React.FC<StatisticsProps> = ({
 		);
 	})();
 
+	// AI doodle texture for the current project's theme (faint full-page background), when we have one.
+	const doodleTheme = /game|arcade|dino|slag|play/.test((projectName ?? '').toLowerCase()) ? 'game' : '';
+	const doodleUrl = DOODLES[doodleTheme];
+
 	return (
-		<div className="min-h-full bg-gray-50 dark:bg-gray-900">
+		<div className="relative min-h-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+			{doodleUrl && (
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute inset-0"
+					style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.07 }}
+				/>
+			)}
 		<div className="max-w-7xl mx-auto p-6 space-y-8">
 			{/* Header */}
 			<div className="text-center">
@@ -363,7 +375,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			</div>
 
 			{/* Progress Bar */}
-			<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 				<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h3>
 				<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-circle h-4 mb-2">
 					<div 
@@ -380,7 +392,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Status and Priority Distribution */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Status Distribution */}
-				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h3>
 					<div className="space-y-4">
 						{Object.entries(statistics.statusCounts)
@@ -413,7 +425,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Priority Distribution */}
-				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h3>
 					<div className="space-y-4">
 						{priorityBreakdown.map(({ key, priority, label, count }) => (
@@ -447,7 +459,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Recent Activity */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Recently Created */}
-				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h3>
 					{statistics.recentActivity.created.length > 0 ? (
 						<div className="space-y-3">
@@ -465,7 +477,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Recently Updated */}
-				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h3>
 					{statistics.recentActivity.updated.length > 0 ? (
 						<div className="space-y-3">
@@ -484,7 +496,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			</div>
 
 			{/* Project Health - Completely redesigned as a summary row */}
-			<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
 				<div className="flex items-center justify-between">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Project Health</h3>
 					

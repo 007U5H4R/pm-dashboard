@@ -242,8 +242,8 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
         isEmpty ? 'min-h-24' : 'min-h-96'
       } ${
         isDragOver && (dragSourceStatus !== title || (dragSourceLane ?? null) !== (laneId ?? null))
-          ? 'bg-green-50/80 dark:bg-green-900/30 border border-green-300 dark:border-green-600 border-dashed backdrop-blur-[2px]'
-          : 'bg-black/25 dark:bg-black/35 border border-white/15 dark:border-white/10 backdrop-blur-lg'
+          ? 'bg-green-50 dark:bg-green-900/30 border border-green-300 dark:border-green-600 border-dashed'
+          : 'bg-gray-100/80 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700'
       }`}
       onDrop={handleDrop}
       onDragOver={handleDragOverColumn}
@@ -252,7 +252,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-white transition-colors duration-200">{title}</h3>
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100 transition-colors duration-200">{title}</h3>
           <span className={`px-2 py-1 text-xs font-medium rounded-circle ${getStatusBadgeClass(title)}`}>
             {tasks.length}
           </span>
@@ -263,7 +263,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 text-white/60 hover:text-white rounded-md hover:bg-white/10 transition-colors duration-200 focus:outline-none"
+              className="p-1 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none"
               title="Column actions"
               aria-label="Column actions"
               aria-haspopup="menu"

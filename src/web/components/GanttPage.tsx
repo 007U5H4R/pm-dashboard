@@ -3,6 +3,7 @@ import type { Task } from '../../types';
 import { computeSchedule } from '../lib/schedule';
 import CustomGantt from './CustomGantt';
 import LoadingSpinner from './LoadingSpinner';
+import { BOARD_BG } from '../assets/boardBg';
 
 export interface GanttPageProps {
   tasks: Task[];
@@ -54,7 +55,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
 
   if (tasks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-white/70">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-white/70 bg-cover bg-center" style={{ backgroundImage: `url(${BOARD_BG})` }}>
         <p className="text-base font-medium text-white">No tickets yet</p>
         <p className="text-sm mt-1">
           Create tasks with an <code className="px-1 rounded bg-white/10 border border-white/15 text-white/80">sp:&lt;n&gt;</code> label and
@@ -65,7 +66,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6">
+    <div className="flex-1 overflow-auto p-6 bg-cover bg-center" style={{ backgroundImage: `url(${BOARD_BG})` }}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-xl font-semibold text-white">Gantt · {projectName}</h1>
         <ul className="flex flex-wrap gap-3 text-xs text-white/70">
