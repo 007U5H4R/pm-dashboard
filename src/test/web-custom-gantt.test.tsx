@@ -55,7 +55,7 @@ describe("CustomGantt", () => {
 		expect(html).toContain('data-testid="gantt-bar-TASK-2"');
 	});
 
-	it("maps status to the expected pastel bar color", () => {
+	it("maps status to the expected liquid-glass bar color", () => {
 		const html = render([
 			task("TASK-1", { title: "Done task", status: "Done" }),
 			task("TASK-2", { title: "In progress task", status: "In Progress" }),
@@ -70,11 +70,11 @@ describe("CustomGantt", () => {
 			const styleEnd = html.indexOf(';', styleStart);
 			return html.slice(styleStart + "background-color:".length, styleEnd);
 		};
-		expect(fillColorFor("TASK-1")).toBe("#86E3CE");
-		expect(fillColorFor("TASK-2")).toBe("#D0E6A5");
-		expect(fillColorFor("TASK-3")).toBe("#FFDD94");
-		expect(fillColorFor("TASK-4")).toBe("#FA897B");
-		expect(fillColorFor("TASK-5")).toBe("#CCABD8");
+		expect(fillColorFor("TASK-1")).toBe("rgba(16, 185, 129, 0.55)");
+		expect(fillColorFor("TASK-2")).toBe("rgba(59, 130, 246, 0.55)");
+		expect(fillColorFor("TASK-3")).toBe("rgba(59, 130, 246, 0.55)");
+		expect(fillColorFor("TASK-4")).toBe("rgba(239, 68, 68, 0.55)");
+		expect(fillColorFor("TASK-5")).toBe("rgba(203, 213, 225, 0.55)");
 	});
 
 	it("shows an avatar with initials for an assigned task and none for an unassigned one", () => {

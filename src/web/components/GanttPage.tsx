@@ -13,11 +13,11 @@ export interface GanttPageProps {
 }
 
 const LEGEND: Array<{ label: string; hex: string }> = [
-  { label: 'Done', hex: '#86E3CE' },
-  { label: 'In Progress', hex: '#D0E6A5' },
-  { label: 'In Review', hex: '#FFDD94' },
-  { label: 'Blocked', hex: '#FA897B' },
-  { label: 'To Do', hex: '#CCABD8' },
+  { label: 'Done', hex: '#10b981' },
+  { label: 'In Progress', hex: '#3b82f6' },
+  { label: 'In Review', hex: '#3b82f6' },
+  { label: 'Blocked', hex: '#ef4444' },
+  { label: 'To Do', hex: '#cbd5e1' },
 ];
 
 export default function GanttPage({ tasks, isLoading, loadError, projectName, onRetry }: GanttPageProps) {
@@ -36,8 +36,8 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
   if (loadError && tasks.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center" role="alert">
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-600 dark:text-red-400 mb-3">{loadError.message}</p>
+        <div className="p-4 bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40">
+          <p className="text-sm text-red-300 mb-3">{loadError.message}</p>
           {onRetry && (
             <button
               type="button"
@@ -54,10 +54,10 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
 
   if (tasks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-gray-500 dark:text-gray-400">
-        <p className="text-base font-medium">No tickets yet</p>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-white/70">
+        <p className="text-base font-medium text-white">No tickets yet</p>
         <p className="text-sm mt-1">
-          Create tasks with an <code className="px-1 rounded bg-gray-100 dark:bg-gray-800">sp:&lt;n&gt;</code> label and
+          Create tasks with an <code className="px-1 rounded bg-white/10 border border-white/15 text-white/80">sp:&lt;n&gt;</code> label and
           dependencies to see them here.
         </p>
       </div>
@@ -67,18 +67,21 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
   return (
     <div className="flex-1 overflow-auto p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Gantt · {projectName}</h1>
-        <ul className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-300">
+        <h1 className="text-xl font-semibold text-white">Gantt · {projectName}</h1>
+        <ul className="flex flex-wrap gap-3 text-xs text-white/70">
           {LEGEND.map(item => (
             <li key={item.label} className="flex items-center gap-1.5">
-              <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: item.hex }} />
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-white/30"
+                style={{ backgroundColor: item.hex, opacity: 0.85 }}
+              />
               {item.label}
             </li>
           ))}
         </ul>
       </div>
       {(unestimated > 0 || schedule.warnings.length > 0) && (
-        <div className="mb-3 text-xs text-amber-700 dark:text-amber-300 space-y-1">
+        <div className="mb-3 text-xs text-amber-200 space-y-1">
           {unestimated > 0 && (
             <p>
               {`${unestimated} ticket${unestimated === 1 ? '' : 's'} without an estimate (shown as "no est.", scheduled as 1 pt).`}
