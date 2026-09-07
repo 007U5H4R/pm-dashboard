@@ -267,3 +267,23 @@
     }
 
 }
+
+/* Movie-ticket-style side notches: punch a transparent semicircle out of the
+   left and right edge midpoints so the column/doodle behind shows through.
+   Two mask layers (each ~half the card) union to the full card minus the two
+   notches. Shadow uses drop-shadow so it follows the notched silhouette. */
+.ticket-notch {
+    --notch-r: 11px;
+    -webkit-mask:
+        radial-gradient(circle var(--notch-r) at 0 50%, #0000 var(--notch-r), #000 calc(var(--notch-r) + 0.5px)) 0 0 / 50.5% 100% no-repeat,
+        radial-gradient(circle var(--notch-r) at 100% 50%, #0000 var(--notch-r), #000 calc(var(--notch-r) + 0.5px)) 100% 0 / 50.5% 100% no-repeat;
+    mask:
+        radial-gradient(circle var(--notch-r) at 0 50%, #0000 var(--notch-r), #000 calc(var(--notch-r) + 0.5px)) 0 0 / 50.5% 100% no-repeat,
+        radial-gradient(circle var(--notch-r) at 100% 50%, #0000 var(--notch-r), #000 calc(var(--notch-r) + 0.5px)) 100% 0 / 50.5% 100% no-repeat;
+    /* First shadow gives the card downward depth; the second is direction-less
+       so both concave side notches (left and right) catch an even inner shadow. */
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.07)) drop-shadow(0 0 1.5px rgb(0 0 0 / 0.16));
+}
+.ticket-notch:hover {
+    filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.12)) drop-shadow(0 0 1.5px rgb(0 0 0 / 0.16));
+}

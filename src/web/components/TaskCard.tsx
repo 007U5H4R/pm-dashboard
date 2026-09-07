@@ -246,10 +246,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       <div
-        className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-3 mb-2 transition-all duration-200 ${
+        className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl ticket-notch p-3 mb-2 transition-all duration-200 ${
           isFromOtherBranch
             ? 'opacity-75 cursor-not-allowed border-dashed'
-            : 'cursor-pointer hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600'
+            : 'cursor-pointer hover:border-gray-300 dark:hover:border-gray-600'
         } ${getPriorityClass(task.priority)} ${
           isDragging || (isSelected && isSelectionDragging) ? 'opacity-50 transform rotate-2 scale-105' : ''
         } ${
