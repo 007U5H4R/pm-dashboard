@@ -187,6 +187,13 @@ const DEFAULT_CONFIG: RequestConfig = {
 	timeout: 10000,
 };
 
+/** Per-project dashboard appearance selections (all optional; absent = theme default). */
+export interface AppearanceSettings {
+	icon?: string;
+	doodleBg?: string;
+	ganttBg?: string;
+}
+
 export class ApiClient {
 	private config: RequestConfig;
 
@@ -489,6 +496,24 @@ export class ApiClient {
 		});
 		if (!response.ok) {
 			throw new Error("Failed to update config");
+		}
+		return response.json();
+	}
+
+	async fetchAppearance(): Promise<AppearanceSettings> {
+		const response = await fetch(`${API_BASE}/appearance`);
+		if (!response.ok) return {};
+		return response.json();
+	}
+
+	async updateAppearance(appearance: AppearanceSettings): Promise<AppearanceSettings> {
+		const response = await fetch(`${API_BASE}/appearance`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(appearance),
+		});
+		if (!response.ok) {
+			throw new Error("Failed to update appearance");
 		}
 		return response.json();
 	}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type ProjectSummary, useProject } from '../contexts/ProjectContext';
 import { ProjectIcon } from './ProjectIcon';
+import { useAppearance } from '../contexts/AppearanceContext';
 
 interface ProjectSwitcherViewProps {
 	projects: ProjectSummary[];
@@ -14,6 +15,7 @@ interface ProjectSwitcherViewProps {
 export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open = false }: ProjectSwitcherViewProps) {
 	const [isOpen, setIsOpen] = useState(open);
 	const rootRef = useRef<HTMLDivElement | null>(null);
+	const { appearance } = useAppearance();
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -47,7 +49,7 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 			>
 				<span className="flex items-center gap-2 min-w-0">
 					<span className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0">
-						<ProjectIcon name={active.name} id={active.id} className="w-5 h-5" />
+						<ProjectIcon name={active.name} id={active.id} theme={appearance.icon} className="w-5 h-5" />
 					</span>
 					<span className="truncate">{active.name}</span>
 				</span>

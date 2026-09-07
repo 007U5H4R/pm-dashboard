@@ -17,6 +17,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import { SuccessToast } from './components/SuccessToast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ProjectProvider, useProject } from './contexts/ProjectContext';
+import { AppearanceProvider } from './contexts/AppearanceContext';
 import { TaskIdIndexProvider } from './contexts/TaskIdIndexContext';
 import {
 	type Decision,
@@ -1173,7 +1174,9 @@ function App() {
   return (
     <BrowserRouter>
       <ProjectProvider>
-        <ProjectScopedApp />
+        <AppearanceProvider>
+          <ProjectScopedApp />
+        </AppearanceProvider>
       </ProjectProvider>
     </BrowserRouter>
   );

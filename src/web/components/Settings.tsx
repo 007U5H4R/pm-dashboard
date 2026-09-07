@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../lib/api';
 import { SuccessToast } from './SuccessToast';
+import AppearanceSettings from './AppearanceSettings';
 import type { BacklogConfig } from '../../types';
 
 const Settings: React.FC = () => {
@@ -144,6 +145,9 @@ const Settings: React.FC = () => {
 				)}
 
 				<div className="space-y-8">
+					{/* Appearance (per-project icon + backgrounds) */}
+					<AppearanceSettings />
+
 					{/* Project Settings */}
 					<div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
 						<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Project Settings</h2>

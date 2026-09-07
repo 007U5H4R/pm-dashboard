@@ -1,6 +1,9 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import SideNavigation from './SideNavigation';
 import Navigation from './Navigation';
+import { useAppearance } from '../contexts/AppearanceContext';
+import { projectTheme } from './ProjectIcon';
+import { DOODLES } from '../assets/doodles';
 import { HealthIndicator, HealthSuccessToast } from './HealthIndicator';
 import { DuplicateIdWarning } from './DuplicateIdWarning';
 import type { DuplicateRepairPlan } from '../../core/duplicate-task-repair';
@@ -33,6 +36,13 @@ export default function Layout({
 	onRefreshData,
 	duplicateRepairPlan = null,
 }: LayoutProps) {
+	const location = useLocation();
+	const { appearance } = useAppearance();
+	// Doodle background shows on every page EXCEPT the board, Gantt, and Workflow (those keep their
+	// own backgrounds). The doodle is the project's chosen one, else its theme default.
+	const doodleExcluded = ['/board', '/gantt', '/workflow'].some((p) => location.pathname.startsWith(p));
+	const doodleKey = appearance.doodleBg || projectTheme(projectName);
+	const doodleUrl = !doodleExcluded ? DOODLES[doodleKey] : undefined;
 	return (
 		<div className="relative isolate h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200">
 			<HealthIndicator />
@@ -49,7 +59,18 @@ export default function Layout({
 				<Navigation projectName={projectName} loadingMessage={loadingMessage} />
 				<DuplicateIdWarning plan={duplicateRepairPlan} onRepaired={onRefreshData} />
 				<main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden">
-					<Outlet context={{ tasks, docs, decisions, isLoading, onRefreshData }} />
+					<div className="relative min-h-full">
+						{doodleUrl && (
+							<div
+								aria-hidden="true"
+								className="pointer-events-none absolute inset-0"
+								style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.06 }}
+							/>
+						)}
+						<div className="relative min-h-full">
+							<Outlet context={{ tasks, docs, decisions, isLoading, onRefreshData }} />
+						</div>
+					</div>
 				</main>
 			</div>
 			{showSuccessToast && (

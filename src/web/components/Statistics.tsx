@@ -5,7 +5,6 @@ import type { Task } from '../../types';
 import { formatPriorityLabel } from '../../utils/priority-config';
 import LoadingSpinner from './LoadingSpinner';
 import StoredDate from './StoredDate';
-import { DOODLES } from '../assets/doodles';
 
 interface StatisticsData extends Omit<TaskStatistics, 'statusCounts' | 'priorityCounts'> {
 	statusCounts: Record<string, number>;
@@ -320,19 +319,9 @@ const Statistics: React.FC<StatisticsProps> = ({
 		);
 	})();
 
-	// AI doodle texture for the current project's theme (faint full-page background), when we have one.
-	const doodleTheme = /game|arcade|dino|slag|play/.test((projectName ?? '').toLowerCase()) ? 'game' : '';
-	const doodleUrl = DOODLES[doodleTheme];
-
 	return (
-		<div className="relative min-h-full overflow-hidden bg-gray-50 dark:bg-gray-900">
-			{doodleUrl && (
-				<div
-					aria-hidden="true"
-					className="pointer-events-none absolute inset-0"
-					style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.07 }}
-				/>
-			)}
+		<div className="min-h-full">
+			{/* The doodle background is provided centrally by Layout for non-board pages. */}
 		<div className="max-w-7xl mx-auto p-6 space-y-8">
 			{/* Header */}
 			<div className="text-center">

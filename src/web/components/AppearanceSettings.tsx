@@ -1,0 +1,95 @@
+import { useState } from 'react';
+import { useAppearance } from '../contexts/AppearanceContext';
+import { ProjectIcon, PROJECT_ICON_THEMES } from './ProjectIcon';
+import { DOODLES, DOODLE_KEYS } from '../assets/doodles';
+import { GANTT_BACKGROUNDS, GANTT_BG_KEYS } from '../assets/gantt-backgrounds';
+import type { AppearanceSettings as AppearanceValues } from '../lib/api';
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Per-project appearance picker: choose the project icon, the doodle background (shown on most pages),
+ * and the abstract background used by the Execution Gantt + Workflow. Saved server-side per project. */
+export default function AppearanceSettings() {
+	const { appearance, update } = useAppearance();
+	const [busy, setBusy] = useState(false);
+
+	const pick = async (patch: AppearanceValues) => {
+		setBusy(true);
+		try {
+			await update(patch);
+		} finally {
+			setBusy(false);
+		}
+	};
+
+	return (
+		<div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+			<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Appearance</h2>
+			<p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Personalize this project's icon and backgrounds. Saved for the project.</p>
+
+			<div className={`space-y-6 ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
+				{/* Project icon */}
+				<section>
+					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project icon</h3>
+					<div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+						{PROJECT_ICON_THEMES.map((t) => (
+							<button
+								key={t}
+								type="button"
+								title={cap(t)}
+								onClick={() => pick({ icon: t })}
+								className={`flex items-center justify-center aspect-square rounded-xl bg-gray-50 dark:bg-gray-900 border-2 transition-colors ${
+									appearance.icon === t ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+								}`}
+							>
+								<ProjectIcon name="" theme={t} className="w-6 h-6" />
+							</button>
+						))}
+					</div>
+				</section>
+
+				{/* Doodle background */}
+				<section>
+					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Doodle background</h3>
+					<div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+						{DOODLE_KEYS.map((k) => (
+							<button
+								key={k}
+								type="button"
+								title={cap(k)}
+								onClick={() => pick({ doodleBg: k })}
+								className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-colors ${
+									(appearance.doodleBg ?? '') === k ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+								}`}
+							>
+								<img src={DOODLES[k]} alt={cap(k)} className="w-full h-full object-cover" />
+								<span className="absolute bottom-0 inset-x-0 bg-black/45 text-white text-[10px] py-0.5 text-center">{cap(k)}</span>
+							</button>
+						))}
+					</div>
+				</section>
+
+				{/* Gantt / Workflow background */}
+				<section>
+					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Execution Gantt &amp; Workflow background</h3>
+					<div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+						{GANTT_BG_KEYS.map((k) => (
+							<button
+								key={k}
+								type="button"
+								title={cap(k)}
+								onClick={() => pick({ ganttBg: k })}
+								className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-colors ${
+									(appearance.ganttBg ?? '') === k ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+								}`}
+							>
+								<img src={GANTT_BACKGROUNDS[k]} alt={cap(k)} className="w-full h-full object-cover" />
+								<span className="absolute bottom-0 inset-x-0 bg-black/45 text-white text-[10px] py-0.5 text-center">{cap(k)}</span>
+							</button>
+						))}
+					</div>
+				</section>
+			</div>
+		</div>
+	);
+}

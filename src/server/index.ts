@@ -340,6 +340,10 @@ export class BacklogServer {
 				GET: async () => await this.handleGetConfig(),
 				PUT: async (req) => await this.handleUpdateConfig(req),
 			},
+			"/appearance": {
+				GET: async () => await this.handleGetAppearance(),
+				PUT: async (req) => await this.handleUpdateAppearance(req),
+			},
 			"/docs": {
 				GET: async () => await this.handleListDocs(),
 				POST: async (req) => await this.handleCreateDoc(req),
@@ -1427,6 +1431,41 @@ export class BacklogServer {
 			}
 			console.error("Error updating decision:", error);
 			return Response.json({ error: "Failed to update decision" }, { status: 500 });
+		}
+	}
+
+	/** Per-project dashboard appearance (icon / doodle background / Gantt background), stored in the
+	 * project's backlog folder so the choice is shared across browsers and devices. */
+	private appearanceFilePath(): string {
+		return join(dirname(this.core.filesystem.docsDir), "pm-dashboard.json");
+	}
+
+	private async handleGetAppearance(): Promise<Response> {
+		try {
+			const file = Bun.file(this.appearanceFilePath());
+			if (!(await file.exists())) return Response.json({});
+			return Response.json(await file.json());
+		} catch (error) {
+			console.error("Error loading appearance:", error);
+			return Response.json({});
+		}
+	}
+
+	private async handleUpdateAppearance(req: { json: () => Promise<unknown> }): Promise<Response> {
+		try {
+			const body = (await req.json()) as Record<string, unknown>;
+			const path = this.appearanceFilePath();
+			const file = Bun.file(path);
+			const current = (await file.exists()) ? ((await file.json()) as Record<string, unknown>) : {};
+			const next = { ...current };
+			for (const key of ["icon", "doodleBg", "ganttBg"] as const) {
+				if (typeof body[key] === "string") next[key] = body[key];
+			}
+			await Bun.write(path, JSON.stringify(next, null, 2));
+			return Response.json(next);
+		} catch (error) {
+			console.error("Error saving appearance:", error);
+			return Response.json({ error: "Failed to save appearance" }, { status: 500 });
 		}
 	}
 
