@@ -13,7 +13,6 @@ import {
 import ErrorBoundary from './ErrorBoundary';
 import ProjectSwitcher from './ProjectSwitcher';
 import { createUrlPath, sanitizeUrlTitle } from '../utils/urlHelpers';
-import { getWebVersion } from '../utils/version';
 import { apiClient } from '../lib/api';
 import { parseSearchCommandQuery } from '../utils/search-command-query';
 import { buildDocsTree, type DocsTreeNode } from '../lib/docs-tree';
@@ -311,7 +310,6 @@ const SideNavigation = memo(function SideNavigation({
 		// Auto-collapse if more than 6 decisions
 		return decisions.length > 6;
 	});
-	const [version, setVersion] = useState<string>('');
 	const location = useLocation();
 	const navigate = useNavigate();
 
@@ -327,11 +325,6 @@ const SideNavigation = memo(function SideNavigation({
 	useEffect(() => {
 		localStorage.setItem('sideNavCollapsed', JSON.stringify(isCollapsed));
 	}, [isCollapsed]);
-
-	// Fetch version on mount
-	useEffect(() => {
-		getWebVersion().then(setVersion).catch(() => setVersion(''));
-	}, []);
 
 	// Save docs collapse state to localStorage
 	useEffect(() => {
@@ -1033,9 +1026,6 @@ const SideNavigation = memo(function SideNavigation({
 					>
 						<Icons.DocumentSettings />
 						<span className="ml-3 text-sm font-medium">Settings</span>
-						{version && (
-							<span className="ml-auto text-xs text-gray-500 dark:text-gray-400">Backlog.md - v{version}</span>
-						)}
 					</NavLink>
 				) : (
 					<NavLink
