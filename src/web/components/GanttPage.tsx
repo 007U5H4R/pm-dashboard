@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { Task } from '../../types';
-import { computeSchedule, toMermaidGantt } from '../lib/schedule';
+import { computeSchedule } from '../lib/schedule';
+import CustomGantt from './CustomGantt';
 import LoadingSpinner from './LoadingSpinner';
-import MermaidMarkdown from './MermaidMarkdown';
 
 export interface GanttPageProps {
   tasks: Task[];
@@ -21,10 +21,6 @@ const LEGEND: Array<{ label: string; className: string }> = [
 
 export default function GanttPage({ tasks, isLoading, loadError, projectName, onRetry }: GanttPageProps) {
   const schedule = useMemo(() => computeSchedule(tasks), [tasks]);
-  const source = useMemo(
-    () => `\`\`\`mermaid\n${toMermaidGantt(schedule, projectName)}\n\`\`\``,
-    [schedule, projectName],
-  );
   const unestimated = schedule.tasks.filter(t => !t.estimated).length;
 
   if (isLoading && tasks.length === 0) {
@@ -92,16 +88,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
           ))}
         </div>
       )}
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 overflow-x-auto">
-        {/*
-          MermaidMarkdown replaces its rendered <pre><code> with a raw DOM node once the
-          diagram is drawn, outside React's tracking. A same-instance prop update (a live
-          schedule change) then has no `<pre><code>` left for the effect to find, so the
-          chart never redraws until a full remount. Keying on the source forces exactly
-          that remount whenever the computed schedule actually changes.
-        */}
-        <MermaidMarkdown key={source} source={source} />
-      </div>
+      <CustomGantt tasks={tasks} projectName={projectName} />
     </div>
   );
 }
