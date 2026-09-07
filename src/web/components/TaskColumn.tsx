@@ -241,9 +241,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
       } ${
         isDragOver && (dragSourceStatus !== title || (dragSourceLane ?? null) !== (laneId ?? null))
           ? 'bg-green-50/80 dark:bg-green-900/30 border border-green-300 dark:border-green-600 border-dashed backdrop-blur-[2px]'
-          : isEmpty
-            ? 'bg-white/20 dark:bg-white/10 border border-white/20 dark:border-white/10'
-            : 'bg-white/25 dark:bg-white/10 border border-white/20 dark:border-white/10 backdrop-blur-[2px]'
+          : 'bg-black/25 dark:bg-black/35 border border-white/15 dark:border-white/10 backdrop-blur-lg'
       }`}
       onDrop={handleDrop}
       onDragOver={handleDragOverColumn}
@@ -252,7 +250,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-200">{title}</h3>
+          <h3 className="font-semibold text-white transition-colors duration-200">{title}</h3>
           <span className={`px-2 py-1 text-xs font-medium rounded-circle ${getStatusBadgeClass(title)}`}>
             {tasks.length}
           </span>
@@ -263,7 +261,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
             <button
               type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none"
+              className="p-1 text-white/60 hover:text-white rounded-md hover:bg-white/10 transition-colors duration-200 focus:outline-none"
               title="Column actions"
               aria-label="Column actions"
               aria-haspopup="menu"
@@ -422,7 +420,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
         )}
         
         {isEmpty && !isDragOver && (
-          <div className="text-center py-2 text-gray-400 dark:text-gray-500 text-xs transition-colors duration-200">
+          <div className="text-center py-2 text-white/60 text-xs transition-colors duration-200">
             {dragSourceStatus && dragSourceStatus !== title
               ? `Drop to move`
               : `Empty`}
@@ -431,10 +429,10 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
 
         {/* Cleanup button for the configured terminal column */}
         {onCleanup && tasks.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-white/10">
 	            <button
 	              onClick={onCleanup}
-	              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+	              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
 	              title="Clean up old completed tasks"
 	            >
 	              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

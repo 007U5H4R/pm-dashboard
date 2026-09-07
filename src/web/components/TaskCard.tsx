@@ -190,15 +190,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       <div
-        className={`bg-white/65 dark:bg-gray-900/50 backdrop-blur-lg border border-white/30 dark:border-white/10 border-t-white/60 dark:border-t-white/15 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/30 p-3 mb-2 transition-all duration-200 ${
+        className={`bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-3 mb-2 transition-all duration-200 ${
           isFromOtherBranch
             ? 'opacity-75 cursor-not-allowed border-dashed'
-            : 'cursor-pointer hover:shadow-xl hover:bg-white/75 dark:hover:bg-gray-900/60 hover:border-stone-500/60 dark:hover:border-stone-400/40'
+            : 'cursor-pointer hover:shadow-xl hover:bg-black/40 dark:hover:bg-black/55 hover:border-stone-400/50 dark:hover:border-stone-300/30'
         } ${getPriorityClass(task.priority)} ${
           isDragging || (isSelected && isSelectionDragging) ? 'opacity-50 transform rotate-2 scale-105' : ''
         } ${
           isSelected
-            ? 'ring-2 ring-blue-500 dark:ring-blue-400 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30'
+            ? 'ring-2 ring-blue-500 dark:ring-blue-400 border-blue-400/60 dark:border-blue-400/50 bg-blue-950/40'
             : ''
         }`}
         aria-selected={isSelected}
@@ -244,7 +244,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Header row with task metadata */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 font-mono transition-colors duration-200">{task.id}</span>
+            <span className="shrink-0 text-xs text-white/70 font-mono transition-colors duration-200">{task.id}</span>
             <TaskTypeBadge type={task.type} availableTypes={availableTypes} className="min-w-0" />
             <ProjectBadge project={task.project} availableProjects={availableProjects} className="min-w-0" />
           </div>
@@ -261,8 +261,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Title */}
         <h4 className={`font-semibold text-sm line-clamp-2 transition-colors duration-200 ${
           isFromOtherBranch
-            ? 'text-gray-600 dark:text-gray-400'
-            : 'text-gray-900 dark:text-gray-100'
+            ? 'text-white/60'
+            : 'text-white'
         }`}>
           {task.title}
         </h4>
@@ -281,7 +281,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               </span>
             ))}
             {task.labels.length > 3 && (
-              <span className="inline-block px-1.5 py-0.5 text-[10px] text-gray-400 dark:text-gray-500">
+              <span className="inline-block px-1.5 py-0.5 text-[10px] text-white/60">
                 +{task.labels.length - 3}
               </span>
             )}
@@ -289,7 +289,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         )}
 
         {/* Footer with date */}
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-gray-400 dark:text-gray-500 mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-600/50 transition-colors duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-white/70 mt-2 pt-1.5 border-t border-white/10 transition-colors duration-200">
           <span>{formatRelativeDate(task.createdDate)}</span>
           {task.dueDate && <span>Due: <StoredDate value={task.dueDate} dateFormat={dateFormat} /></span>}
           {task.assignee.length > 0 && (
