@@ -12,11 +12,12 @@ export interface GanttPageProps {
   onRetry?: () => void;
 }
 
-const LEGEND: Array<{ label: string; className: string }> = [
-  { label: 'Done', className: 'bg-emerald-500' },
-  { label: 'In Progress / In Review', className: 'bg-blue-500' },
-  { label: 'Blocked', className: 'bg-red-500' },
-  { label: 'To Do', className: 'bg-gray-300 dark:bg-gray-600' },
+const LEGEND: Array<{ label: string; hex: string }> = [
+  { label: 'Done', hex: '#86E3CE' },
+  { label: 'In Progress', hex: '#D0E6A5' },
+  { label: 'In Review', hex: '#FFDD94' },
+  { label: 'Blocked', hex: '#FA897B' },
+  { label: 'To Do', hex: '#CCABD8' },
 ];
 
 export default function GanttPage({ tasks, isLoading, loadError, projectName, onRetry }: GanttPageProps) {
@@ -70,7 +71,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
         <ul className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-300">
           {LEGEND.map(item => (
             <li key={item.label} className="flex items-center gap-1.5">
-              <span className={`inline-block w-3 h-3 rounded-sm ${item.className}`} />
+              <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: item.hex }} />
               {item.label}
             </li>
           ))}

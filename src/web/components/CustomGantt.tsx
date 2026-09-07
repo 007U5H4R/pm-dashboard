@@ -35,21 +35,27 @@ function startOfUtcDay(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function hexToRgba(hex: string, alpha: number): string {
+/** Mixes hex toward white (percent > 0) or black (percent < 0) for a soft-emboss gradient. */
+function shade(hex: string, percent: number): string {
   const int = Number.parseInt(hex.slice(1), 16);
   const r = (int >> 16) & 255;
   const g = (int >> 8) & 255;
   const b = int & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const target = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent);
+  const mix = (channel: number) => Math.round((target - channel) * p) + channel;
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
 }
 
-/** Done -> green, Blocked -> red, In Progress/In Review -> blue, everything else (To Do) -> gray. */
+/** Status -> pastel neumorphism palette (Done mint, In Progress soft green, In Review
+ * yellow, Blocked coral, To Do lavender). Blocked overrides status. */
 export function statusColor(task: ScheduledTask): string {
-  if (task.blocked) return '#ef4444';
+  if (task.blocked) return '#FA897B';
   const status = task.status.trim().toLowerCase();
-  if (status === 'done') return '#10b981';
-  if (status === 'in progress' || status === 'in review') return '#3b82f6';
-  return '#d1d5db';
+  if (status === 'done') return '#86E3CE';
+  if (status === 'in progress') return '#D0E6A5';
+  if (status === 'in review') return '#FFDD94';
+  return '#CCABD8';
 }
 
 function initials(name: string): string {
@@ -73,7 +79,7 @@ function Avatar({ assignee }: { assignee: string[] }) {
     <span
       data-testid="gantt-avatar"
       title={assignee.join(', ')}
-      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-semibold text-white ring-2 ring-white dark:ring-gray-900 ${colorClass}`}
+      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-semibold text-white ring-2 ring-[var(--neu-bg)] ${colorClass}`}
     >
       {avatarLabel(assignee)}
     </span>
@@ -82,33 +88,35 @@ function Avatar({ assignee }: { assignee: string[] }) {
 
 function ProgressRing({ percent, color }: { percent: number; color: string }) {
   const size = 28;
-  const stroke = 3;
+  const stroke = 3.5;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - percent / 100);
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0" role="img" aria-label={`${percent}% complete`}>
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        strokeWidth={stroke}
-        className="stroke-gray-200 dark:stroke-gray-700"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth={stroke}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-    </svg>
+    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full neu-pressed-sm shrink-0">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${percent}% complete`}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          strokeWidth={stroke}
+          className="stroke-black/10 dark:stroke-white/10"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -125,14 +133,18 @@ function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; wid
     <div
       data-testid={`gantt-bar-${task.id}`}
       data-status={task.blocked ? 'blocked' : status}
-      className="absolute top-1/2 -translate-y-1/2 h-6 rounded-full"
-      style={{ left, width: Math.max(width, DAY_WIDTH * 0.4), backgroundColor: hexToRgba(color, 0.25) }}
+      className="absolute top-1/2 -translate-y-1/2 h-6 rounded-full neu-pressed-sm"
+      style={{ left, width: Math.max(width, DAY_WIDTH * 0.4) }}
       title={`${task.title} · ${task.percent}%${task.assignee?.length ? ` · ${task.assignee.join(', ')}` : ''}`}
     >
       <div
         data-testid={`gantt-bar-fill-${task.id}`}
-        className="h-full rounded-full"
-        style={{ width: `${task.percent}%`, backgroundColor: color }}
+        className="h-full rounded-full neu-raised-sm"
+        style={{
+          width: `${task.percent}%`,
+          backgroundColor: color,
+          backgroundImage: `linear-gradient(135deg, ${shade(color, 0.35)} 0%, ${color} 55%, ${shade(color, -0.12)} 100%)`,
+        }}
       />
       {task.assignee && task.assignee.length > 0 && (
         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-10">
@@ -141,7 +153,7 @@ function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; wid
       )}
       {isDone && (
         <svg
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-black/55"
           width="12"
           height="12"
           viewBox="0 0 24 24"
@@ -154,7 +166,7 @@ function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; wid
         </svg>
       )}
       {isInReview && (
-        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-white dark:bg-gray-900 ring-1 ring-blue-500 text-[8px] font-bold text-blue-600 dark:text-blue-400">
+        <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[var(--neu-bg)] neu-raised-sm text-[8px] font-bold text-amber-700 dark:text-amber-300">
           R
         </span>
       )}
@@ -211,7 +223,7 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
 
   if (scheduledTasks.length === 0) {
     return (
-      <div className="p-8 text-center text-sm text-gray-500 dark:text-gray-400" data-testid="gantt-empty">
+      <div className="neu rounded-3xl neu-raised p-8 text-center text-sm text-slate-600 dark:text-slate-300" data-testid="gantt-empty">
         No tasks to schedule.
       </div>
     );
@@ -226,7 +238,7 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
 
   return (
     <div
-      className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-auto"
+      className="neu neu-raised rounded-3xl p-3 overflow-auto"
       style={{ maxHeight: '75vh' }}
       aria-label={`Gantt chart · ${projectName}`}
     >
@@ -234,15 +246,15 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
         {todayOffset !== null && (
           <div
             data-testid="gantt-today-line"
-            className="absolute top-0 bottom-0 w-px bg-red-400/70 dark:bg-red-400/60 z-10"
+            className="absolute top-0 bottom-0 w-px bg-[#FA897B]/60 dark:bg-[#FA897B]/50 z-10"
             style={{ left: LEFT_PANEL_WIDTH + todayOffset }}
           />
         )}
 
         {/* Header */}
-        <div className="flex sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex sticky top-0 z-20 bg-[var(--neu-bg)] shadow-[0_4px_10px_-6px_rgba(0,0,0,0.35)] dark:shadow-[0_4px_10px_-6px_rgba(0,0,0,0.6)] rounded-2xl mb-2">
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700"
+            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-[var(--neu-bg)] rounded-2xl"
             style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT }}
           >
             <span className="flex-1">Title</span>
@@ -250,11 +262,11 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
             <span className="w-20 text-right">Status</span>
           </div>
           <div style={{ width: gridWidth }}>
-            <div className="flex h-5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+            <div className="flex h-5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
               {months.map((month, index) => (
                 <div
                   key={`${month.label}-${index}`}
-                  className="border-r border-gray-100 dark:border-gray-800 px-1.5 flex items-center"
+                  className="px-1.5 flex items-center"
                   style={{ width: month.days * DAY_WIDTH }}
                 >
                   {month.label}
@@ -265,7 +277,7 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
               {days.map(day => (
                 <div
                   key={day.toISOString()}
-                  className="shrink-0 flex items-center justify-center text-[10px] text-gray-400 dark:text-gray-500 border-r border-gray-100 dark:border-gray-800"
+                  className="shrink-0 flex items-center justify-center text-[10px] font-medium text-slate-500 dark:text-slate-400"
                   style={{ width: DAY_WIDTH }}
                 >
                   {`${WEEKDAY_FORMATTER.format(day)} ${day.getUTCDate()}`}
@@ -284,20 +296,20 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
             <div
               key={task.id}
               data-testid={`gantt-row-${task.id}`}
-              className="flex border-b border-gray-100 dark:border-gray-800"
+              className="flex mb-1.5"
             >
               <div
-                className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700"
+                className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 bg-[var(--neu-bg)] neu-raised-sm rounded-2xl"
                 style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT }}
               >
-                <span className="flex-1 truncate text-sm font-medium text-gray-900 dark:text-gray-100" title={task.title}>
+                <span className="flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-100" title={task.title}>
                   {task.title}
                 </span>
-                <span className="w-16 text-xs text-gray-500 dark:text-gray-400">
+                <span className="w-16 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {`${task.days} day${task.days === 1 ? '' : 's'}`}
                 </span>
                 <span className="w-20 flex items-center justify-end gap-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{`${task.percent}%`}</span>
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{`${task.percent}%`}</span>
                   <ProgressRing percent={task.percent} color={color} />
                 </span>
               </div>

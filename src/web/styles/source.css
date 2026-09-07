@@ -265,4 +265,40 @@
     .w-md-editor textarea {
         resize: none !important;
     }
+
+    /* Neumorphism (soft UI) primitives, scoped to the Gantt chart. A single soft base
+       color per theme; elements read as extruded (raised) or pressed-in (pressed) via
+       dual soft shadows instead of borders. */
+    .neu {
+        --neu-bg: #eef1f6;
+        --neu-light: #ffffff;
+        --neu-dark: #b7bec9;
+        background: var(--neu-bg);
+    }
+
+    .dark .neu {
+        --neu-bg: #2a2d34;
+        --neu-light: #383c45;
+        --neu-dark: #14161a;
+    }
+
+    .neu-raised {
+        background: var(--neu-bg);
+        box-shadow: -6px -6px 12px var(--neu-light), 6px 6px 12px var(--neu-dark);
+    }
+
+    .neu-raised-sm {
+        background: var(--neu-bg);
+        box-shadow: -3px -3px 6px var(--neu-light), 3px 3px 6px var(--neu-dark);
+    }
+
+    .neu-pressed {
+        background: var(--neu-bg);
+        box-shadow: inset -4px -4px 8px var(--neu-light), inset 4px 4px 8px var(--neu-dark);
+    }
+
+    .neu-pressed-sm {
+        background: var(--neu-bg);
+        box-shadow: inset -2px -2px 4px var(--neu-light), inset 2px 2px 4px var(--neu-dark);
+    }
 }
