@@ -3,7 +3,7 @@ import { type Milestone, type Task } from '../../types';
 import { apiClient, type ReorderTaskPayload } from '../lib/api';
 import { buildLanes, DEFAULT_LANE_KEY, groupTasksByLaneAndStatus, type LaneMode, sortTasksForStatus } from '../lib/lanes';
 import { collectAvailableLabels, labelsToLower } from '../../utils/label-filter';
-import { collectArchivedMilestoneKeys, milestoneKey } from '../utils/milestones';
+import { collectArchivedMilestoneKeys } from '../utils/milestones';
 import { rollupStatus } from '../utils/ticket-rollup';
 import { getTerminalStatus } from '../../utils/terminal-status';
 import { getPriorityOptions, normalizePriorityValue } from '../../utils/priority-config';
@@ -68,7 +68,6 @@ const Board: React.FC<BoardProps> = ({
   milestoneEntities,
   archivedMilestones,
   laneMode,
-  onLaneChange,
   milestoneFilter,
   filterAssignee = '',
   filterLabels = [],
@@ -484,17 +483,6 @@ const Board: React.FC<BoardProps> = ({
     [laneMode, tasks, milestoneEntities, archivedMilestoneIds, archivedMilestones]
   );
 
-  // Check if any tasks actually have milestones assigned
-  const hasTasksWithMilestones = useMemo(() => {
-    if (archivedMilestoneIds.length === 0) {
-      return tasks.some(task => task.milestone && task.milestone.trim() !== '');
-    }
-    const archivedKeys = new Set(archivedMilestoneIds.map((value) => milestoneKey(value)));
-    return tasks.some(task => {
-      const key = milestoneKey(canonicalizeMilestone(task.milestone));
-      return key.length > 0 && !archivedKeys.has(key);
-    });
-  }, [tasks, archivedMilestoneIds, milestoneAliasToCanonical]);
 
   // Group tickets (top-level tasks) into lanes for counts and visibility; subtasks are shown inside cards.
   const tasksByLane = useMemo(
@@ -736,34 +724,6 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-3" role="toolbar" aria-label="Board view controls">
-            <div className="inline-flex rounded-lg border border-white/40 dark:border-white/10 p-1 bg-white/40 dark:bg-gray-800/30 backdrop-blur-md transition-colors duration-200">
-              <button
-                type="button"
-                onClick={() => onLaneChange('none')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-                  laneMode === 'none'
-                    ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
-                    : 'text-white/90 hover:text-white'
-                }`}
-              >
-                All Tasks
-              </button>
-              <button
-                type="button"
-                onClick={() => onLaneChange('milestone')}
-                disabled={!hasTasksWithMilestones}
-                title={!hasTasksWithMilestones ? 'No tasks have milestones. Assign milestones to tasks first.' : 'Group tasks by milestone'}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
-                  !hasTasksWithMilestones
-                    ? 'text-white cursor-not-allowed opacity-50'
-                    : laneMode === 'milestone'
-                      ? 'bg-white/90 dark:bg-gray-700/80 text-gray-900 dark:text-gray-100 shadow-sm'
-                      : 'text-white/90 hover:text-white'
-                }`}
-              >
-                Milestone
-              </button>
-            </div>
             {onFiltersChange && (
               <div className="flex flex-wrap items-center gap-3" aria-label="Board filters">
                 <select

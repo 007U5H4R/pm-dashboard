@@ -224,18 +224,20 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
 
   return (
     <div
-      className="bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-3 overflow-auto"
-      style={{ maxHeight: '75vh' }}
+      className="bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-3 overflow-hidden"
       aria-label={`Gantt chart · ${projectName}`}
     >
-      <div className="relative" style={{ width: LEFT_PANEL_WIDTH + gridWidth, minWidth: '100%' }}>
+      {/* Inner scroller carries the overflow; the padding lives on the outer frame so scrolling content
+          cannot peek into a padding gap beside the sticky header/left column. */}
+      <div className="overflow-auto" style={{ maxHeight: '75vh' }}>
+        <div className="relative" style={{ width: LEFT_PANEL_WIDTH + gridWidth, minWidth: '100%' }}>
         {/* Header */}
         <div
-          className="flex sticky top-0 z-40 border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 mb-2"
+          className="flex sticky top-0 z-40 border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 shadow-lg shadow-black/20 dark:shadow-black/40 mb-2"
           style={{ backgroundColor: '#140e17' }}
         >
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-white/70 rounded-2xl"
+            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-white/70"
             style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
           >
             <span className="flex-1">Title</span>
@@ -270,7 +272,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
                 className="flex mb-1.5"
               >
                 <div
-                  className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 border border-white/10 dark:border-white/5 rounded-2xl"
+                  className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 border border-white/10 dark:border-white/5"
                   style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
                 >
                   <span
@@ -330,6 +332,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
               ))}
             </svg>
           )}
+        </div>
         </div>
       </div>
     </div>

@@ -248,83 +248,122 @@ const Statistics: React.FC<StatisticsProps> = ({
 		},
 	].filter(({ count }) => count > 0);
 
+	// A faint line-art doodle chosen from the project's theme, used as a corner watermark on the KPI cards.
+	const projectDoodle = (() => {
+		const n = (projectName ?? '').toLowerCase();
+		if (/game|arcade|dino|slag|play/.test(n)) {
+			return (
+				<>
+					<rect x="16" y="46" width="68" height="34" rx="16" />
+					<line x1="32" y1="63" x2="46" y2="63" />
+					<line x1="39" y1="56" x2="39" y2="70" />
+					<circle cx="64" cy="58" r="3.5" />
+					<circle cx="73" cy="67" r="3.5" />
+					<path d="M50 24 l3.2 7 7.6 0.8 -5.6 5.2 1.6 7.4 -6.8 -3.6 -6.8 3.6 1.6 -7.4 -5.6 -5.2 7.6 -0.8z" />
+				</>
+			);
+		}
+		if (/wedding|nupti|bride|ring/.test(n)) {
+			return (
+				<>
+					<circle cx="40" cy="56" r="18" />
+					<circle cx="62" cy="56" r="18" />
+					<path d="M40 32 l4 8 h-8z" />
+				</>
+			);
+		}
+		if (/teach|spark|edu|learn|school/.test(n)) {
+			return (
+				<>
+					<path d="M18 46 l32 -15 32 15 -32 15z" />
+					<path d="M34 54 v16 a16 8 0 0 0 32 0 v-16" />
+					<line x1="82" y1="46" x2="82" y2="70" />
+				</>
+			);
+		}
+		if (/graph|write|hand|sign/.test(n)) {
+			return (
+				<>
+					<path d="M28 74 l32 -36 11 11 -32 36 -14 3z" />
+					<path d="M57 43 l11 11" />
+					<path d="M22 82 q10 -6 20 0" />
+				</>
+			);
+		}
+		if (/rail|train|transit|cite/.test(n)) {
+			return (
+				<>
+					<rect x="28" y="28" width="44" height="42" rx="8" />
+					<rect x="34" y="36" width="14" height="13" rx="2" />
+					<rect x="52" y="36" width="14" height="13" rx="2" />
+					<circle cx="40" cy="76" r="4" />
+					<circle cx="60" cy="76" r="4" />
+				</>
+			);
+		}
+		if (/bhakti|vilas|temple|devot|patent|pratyasa/.test(n)) {
+			return (
+				<>
+					<path d="M50 28 c-15 10 -21 23 -21 33 a21 21 0 0 0 42 0 c0 -10 -6 -23 -21 -33z" />
+					<path d="M34 60 q16 -17 32 0" />
+				</>
+			);
+		}
+		return (
+			<>
+				<circle cx="34" cy="40" r="4" />
+				<circle cx="66" cy="40" r="4" />
+				<circle cx="50" cy="66" r="4" />
+				<path d="M34 40 h32 M34 40 l16 26 M66 40 l-16 26" />
+			</>
+		);
+	})();
+
 	return (
+		<div className="min-h-full bg-gray-50 dark:bg-gray-900">
 		<div className="max-w-7xl mx-auto p-6 space-y-8">
 			{/* Header */}
 			<div className="text-center">
-				<h1 className="text-3xl font-bold text-white mb-2">
+				<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
 					{projectName ? `${projectName} Statistics` : 'Project Statistics'}
 				</h1>
-				<p className="text-white/80">
+				<p className="text-gray-500 dark:text-gray-400">
 					Overview of your project's task metrics and activity
 				</p>
 			</div>
 
-			{/* Key Metrics Cards */}
+			{/* Key Metrics Cards — bold gradient insight tiles */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				{/* Total Tasks */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-					<div className="flex items-center">
-						<div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-							<svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-							</svg>
-						</div>
-						<div className="ml-4">
-							<p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{statistics.totalTasks}</p>
-							<p className="text-gray-600 dark:text-gray-400 text-sm">Total Tasks</p>
-						</div>
+				{[
+					{ label: 'Total Tasks', value: `${statistics.totalTasks}`, gradient: 'from-blue-500 via-indigo-500 to-indigo-700' },
+					{ label: 'Completed', value: `${statistics.completedTasks}`, gradient: 'from-emerald-400 via-emerald-500 to-green-700' },
+					{ label: 'Completion', value: `${statistics.completionPercentage}%`, gradient: 'from-violet-500 via-purple-500 to-purple-700' },
+					{ label: 'Drafts', value: `${statistics.draftCount}`, gradient: 'from-amber-400 via-orange-500 to-orange-600' },
+				].map((card) => (
+					<div
+						key={card.label}
+						className={`relative overflow-hidden rounded-3xl p-6 min-h-[150px] flex flex-col justify-between text-white shadow-lg bg-gradient-to-br ${card.gradient}`}
+					>
+						<svg
+							aria-hidden="true"
+							viewBox="0 0 100 100"
+							className="pointer-events-none absolute -right-3 -bottom-4 h-32 w-32 text-white/25"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth={2.5}
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							{projectDoodle}
+						</svg>
+						<p className="relative text-sm font-medium text-white/85">{card.label}</p>
+						<p className="relative text-4xl font-bold tracking-tight">{card.value}</p>
 					</div>
-				</div>
-
-				{/* Completed Tasks */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-					<div className="flex items-center">
-						<div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-							<svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-						</div>
-						<div className="ml-4">
-							<p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{statistics.completedTasks}</p>
-							<p className="text-gray-600 dark:text-gray-400 text-sm">Completed</p>
-						</div>
-					</div>
-				</div>
-
-				{/* Completion Percentage */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-					<div className="flex items-center">
-						<div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-							<svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-							</svg>
-						</div>
-						<div className="ml-4">
-							<p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{statistics.completionPercentage}%</p>
-							<p className="text-gray-600 dark:text-gray-400 text-sm">Completion</p>
-						</div>
-					</div>
-				</div>
-
-				{/* Drafts */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-					<div className="flex items-center">
-						<div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-							<svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-							</svg>
-						</div>
-						<div className="ml-4">
-							<p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{statistics.draftCount}</p>
-							<p className="text-gray-600 dark:text-gray-400 text-sm">Drafts</p>
-						</div>
-					</div>
-				</div>
+				))}
 			</div>
 
 			{/* Progress Bar */}
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+			<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 				<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h3>
 				<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-circle h-4 mb-2">
 					<div 
@@ -341,7 +380,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Status and Priority Distribution */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Status Distribution */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h3>
 					<div className="space-y-4">
 						{Object.entries(statistics.statusCounts)
@@ -374,7 +413,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Priority Distribution */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h3>
 					<div className="space-y-4">
 						{priorityBreakdown.map(({ key, priority, label, count }) => (
@@ -408,7 +447,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Recent Activity */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Recently Created */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h3>
 					{statistics.recentActivity.created.length > 0 ? (
 						<div className="space-y-3">
@@ -426,7 +465,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Recently Updated */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+				<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h3>
 					{statistics.recentActivity.updated.length > 0 ? (
 						<div className="space-y-3">
@@ -445,7 +484,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			</div>
 
 			{/* Project Health - Completely redesigned as a summary row */}
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+			<div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
 				<div className="flex items-center justify-between">
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Project Health</h3>
 					
@@ -540,6 +579,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 				)}
 			</div>
 
+		</div>
 		</div>
 	);
 };

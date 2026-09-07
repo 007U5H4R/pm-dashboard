@@ -246,15 +246,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       <div
-        className={`bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 p-3 mb-2 transition-all duration-200 ${
+        className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-3 mb-2 transition-all duration-200 ${
           isFromOtherBranch
             ? 'opacity-75 cursor-not-allowed border-dashed'
-            : 'cursor-pointer hover:shadow-xl hover:bg-black/40 dark:hover:bg-black/55 hover:border-stone-400/50 dark:hover:border-stone-300/30'
+            : 'cursor-pointer hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600'
         } ${getPriorityClass(task.priority)} ${
           isDragging || (isSelected && isSelectionDragging) ? 'opacity-50 transform rotate-2 scale-105' : ''
         } ${
           isSelected
-            ? 'ring-2 ring-blue-500 dark:ring-blue-400 border-blue-400/60 dark:border-blue-400/50 bg-blue-950/40'
+            ? 'ring-2 ring-blue-500 dark:ring-blue-400 border-blue-300 bg-blue-50 dark:bg-blue-950/40'
             : ''
         }`}
         aria-selected={isSelected}
@@ -300,7 +300,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Header row with task metadata */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs text-white/70 font-mono transition-colors duration-200">{task.id}</span>
+            <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 font-mono transition-colors duration-200">{task.id}</span>
             <TaskTypeBadge type={task.type} availableTypes={availableTypes} className="min-w-0" />
             <ProjectBadge project={task.project} availableProjects={availableProjects} className="min-w-0" />
           </div>
@@ -318,8 +318,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <h4
           className={`font-semibold text-sm line-clamp-2 cursor-default transition-colors duration-200 ${
             isFromOtherBranch
-              ? 'text-white/60'
-              : 'text-white'
+              ? 'text-gray-400 dark:text-gray-500'
+              : 'text-gray-900 dark:text-gray-100'
           }`}
           title={task.title}
         >
@@ -341,7 +341,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               </span>
             ))}
             {displayLabels.length > 3 && (
-              <span className="inline-block px-1.5 py-0.5 text-[10px] text-white/60">
+              <span className="inline-block px-1.5 py-0.5 text-[10px] text-gray-400 dark:text-gray-500">
                 +{displayLabels.length - 3}
               </span>
             )}
@@ -357,7 +357,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 event.stopPropagation();
                 setShowSubtasks(prev => !prev);
               }}
-              className="flex w-full items-center justify-between gap-2 rounded-lg bg-white/5 px-2 py-1 text-[11px] text-white/80 hover:bg-white/10 transition-colors duration-150"
+              className="flex w-full items-center justify-between gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
               aria-expanded={showSubtasks}
             >
               <span className="flex items-center gap-1.5">
@@ -375,7 +375,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </button>
             {children.length > 0 && (
               <div
-                className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-sm"
+                className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-gray-200 bg-gray-100"
                 style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
               >
                 <div
@@ -394,7 +394,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 {children.map(child => (
                   <li
                     key={child.id}
-                    className="flex items-center gap-2 rounded px-1.5 py-1 text-[11px] text-white/75 hover:bg-white/5 cursor-pointer"
+                    className="flex items-center gap-2 rounded px-1.5 py-1 text-[11px] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
                     title={`${child.id} · ${child.title}`}
                     onClick={(event) => {
                       event.stopPropagation();
@@ -407,11 +407,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
                           ? 'bg-emerald-400'
                           : child.status === 'In Progress' || child.status === 'In Review'
                             ? 'bg-amber-400'
-                            : 'bg-white/30'
+                            : 'bg-gray-300 dark:bg-gray-500'
                       }`}
                     />
-                    <span className="shrink-0 font-mono text-white/70">{child.id}</span>
-                    <span className="ml-auto shrink-0 text-[10px] font-medium text-white/50">{child.status}</span>
+                    <span className="shrink-0 font-mono text-gray-500 dark:text-gray-400">{child.id}</span>
+                    <span className="ml-auto shrink-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">{child.status}</span>
                   </li>
                 ))}
               </ul>
@@ -422,7 +422,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Status progress bar for tickets without subtasks (own status drives the fill) */}
         {children.length === 0 && (
           <div
-            className="mt-2 h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-sm"
+            className="mt-2 h-2 w-full overflow-hidden rounded-full border border-gray-200 bg-gray-100"
             style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
           >
             <div
@@ -438,7 +438,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         )}
 
         {/* Footer with date */}
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-white/70 mt-2 pt-1.5 border-t border-white/10 transition-colors duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-gray-400 dark:text-gray-500 mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
           <span>{formatRelativeDate(task.createdDate)}</span>
           {task.dueDate && <span>Due: <StoredDate value={task.dueDate} dateFormat={dateFormat} /></span>}
           {task.assignee.length > 0 && !modelAvatar && (

@@ -46,7 +46,7 @@ type SortDirection = "asc" | "desc";
 // Assignee, Milestone, Created. Each metadata column is sized to the wider of its header
 // label and its cell content; Title is the one flexible column (null) and absorbs whatever
 // the content area has left, so the table fits a laptop viewport instead of overflowing it.
-const TASK_COLUMN_WIDTHS_REM: readonly (number | null)[] = [6, null, 6.5, 6.5, 6, 8, 6.5, 8, 6];
+const TASK_COLUMN_WIDTHS_REM: readonly (number | null)[] = [6, null, 6.5, 6.5, 6, 8, 6.5, 6];
 
 // Below this the table scrolls horizontally rather than crushing the columns.
 const TASK_TITLE_MIN_WIDTH_REM = 12;
@@ -847,7 +847,6 @@ const TaskList: React.FC<TaskListProps> = ({
 										{renderSortableHeader("Ordinal", "ordinal")}
 										<th className="px-3 py-2">Labels</th>
 										<th className="px-3 py-2">Assignee</th>
-										{renderSortableHeader("Milestone", "milestone")}
 										{renderSortableHeader("Created", "created")}
 									</tr>
 								</thead>
@@ -864,7 +863,6 @@ const TaskList: React.FC<TaskListProps> = ({
 									const labelOverflow = Math.max(task.labels.length - visibleLabels.length, 0);
 									const visibleAssignees = task.assignee.slice(0, 2);
 									const assigneeOverflow = Math.max(task.assignee.length - visibleAssignees.length, 0);
-									const milestoneLabel = task.milestone ? getMilestoneLabel(task.milestone, milestoneEntities) : "—";
 
 									return (
 										<tr
@@ -971,9 +969,6 @@ const TaskList: React.FC<TaskListProps> = ({
 												) : (
 													<span className="text-xs text-gray-300 dark:text-gray-600">—</span>
 												)}
-											</td>
-											<td className="px-3 py-2.5 text-xs text-gray-600 dark:text-gray-300 truncate" title={milestoneLabel}>
-												{milestoneLabel}
 											</td>
 											<td className="px-3 py-2.5 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
 												<StoredDate value={task.createdDate} dateFormat={dateFormat} compact />

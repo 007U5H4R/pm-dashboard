@@ -72,18 +72,25 @@ const Icons = {
 		</svg>
 	),
 	Board: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<rect x="3" y="4" width="5" height="16" rx="1.6" fill="#93c5fd" />
+			<rect x="9.5" y="4" width="5" height="10" rx="1.6" fill="#60a5fa" />
+			<rect x="16" y="4" width="5" height="13" rx="1.6" fill="#3b82f6" />
 		</svg>
 	),
 	List: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<rect x="3" y="4" width="18" height="16" rx="2.5" fill="#fde68a" />
+			<rect x="6" y="8" width="2.6" height="2.6" rx="0.6" fill="#f59e0b" />
+			<rect x="6" y="13.4" width="2.6" height="2.6" rx="0.6" fill="#f59e0b" />
+			<path d="M10.5 9.3h7.5M10.5 14.7h6" />
 		</svg>
 	),
 	Draft: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<path d="M4.5 19.5l1.2-4.4L15 5.8l3.2 3.2-9.3 9.3-4.4 1.2z" fill="#cbd5e1" />
+			<path d="M13.4 7.4l3.2 3.2" />
+			<path d="M5.7 15.1l3.2 3.2" />
 		</svg>
 	),
 	Document: () => (
@@ -148,8 +155,9 @@ const Icons = {
 		</svg>
 	),
 	DecisionBusiness: () => (
-		<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+		<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<path d="M12 3l7 3v5c0 4.6-3 7.7-7 9-4-1.3-7-4.4-7-9V6l7-3z" fill="#a5b4fc" />
+			<path d="M9 12l2 2 4-4" />
 		</svg>
 	),
 	Search: () => (
@@ -173,35 +181,42 @@ const Icons = {
 		</svg>
 	),
 	Folder: () => (
-		<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+		<svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#fcd34d" />
 		</svg>
 	),
 	Statistics: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<rect x="3.5" y="12" width="4.2" height="8" rx="1.2" fill="#86efac" />
+			<rect x="9.9" y="8" width="4.2" height="12" rx="1.2" fill="#4ade80" />
+			<rect x="16.3" y="4" width="4.2" height="16" rx="1.2" fill="#22c55e" />
 		</svg>
 	),
 	Gantt: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h8M8 12h10M6 18h7" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<rect x="3" y="4.5" width="11" height="3.6" rx="1.8" fill="#5eead4" />
+			<rect x="8" y="10.2" width="13" height="3.6" rx="1.8" fill="#2dd4bf" />
+			<rect x="5" y="15.9" width="9" height="3.6" rx="1.8" fill="#14b8a6" />
 		</svg>
 	),
 	Milestone: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<circle cx="12" cy="12" r="9" strokeWidth={2} />
-			<circle cx="12" cy="12" r="5" strokeWidth={2} />
-			<circle cx="12" cy="12" r="1" strokeWidth={2} />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5}>
+			<circle cx="12" cy="12" r="8.5" fill="#fca5a5" />
+			<circle cx="12" cy="12" r="4.6" fill="#f87171" />
+			<circle cx="12" cy="12" r="1.6" fill="#334155" stroke="none" />
 		</svg>
 	),
 	Ticket: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4V7a2 2 0 012-2z" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<path d="M4 6h16a1 1 0 0 1 1 1v3a2 2 0 0 0 0 4v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a2 2 0 0 0 0-4V7a1 1 0 0 1 1-1z" fill="#fda4af" />
+			<path d="M14.5 6.5v11" strokeDasharray="1.6 1.6" />
 		</svg>
 	),
 	Workflow: () => (
-		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h6v4H4zM14 14h6v4h-6zM7 10v4a2 2 0 002 2h5M17 10V8a2 2 0 00-2-2h-1" />
+		<svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round">
+			<rect x="3" y="4" width="7" height="5" rx="1.4" fill="#c4b5fd" />
+			<rect x="14" y="15" width="7" height="5" rx="1.4" fill="#a78bfa" />
+			<path d="M6.5 9v3.5a2 2 0 0 0 2 2H14" />
 		</svg>
 	),
 };
@@ -214,7 +229,7 @@ const DocLink = ({ doc, depth = 0 }: { doc: Document; depth?: number }) => (
 			`flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
 				isActive
 					? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-					: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+					: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 			}`
 		}
 		style={depth > 0 ? { paddingLeft: `${12 + depth * 12}px` } : undefined}
@@ -241,7 +256,7 @@ const FolderNode = memo(function FolderNode({ node, depth, folderExpanded, onTog
 				aria-label={`${node.name} folder`}
 				aria-expanded={isExpanded}
 				title={node.name}
-				className="flex items-center px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 w-full"
+				className="flex items-center px-3 py-2 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 w-full"
 				style={{ paddingLeft: `${12 + depth * 12}px` }}
 			>
 				<span className="shrink-0">{isExpanded ? <Icons.ChevronDown /> : <Icons.ChevronRight />}</span>
@@ -278,9 +293,8 @@ interface SideNavigationProps {
 	onRefreshData: () => Promise<void>;
 }
 
-const SideNavigation = memo(function SideNavigation({ 
-	taskCount,
-	docs, 
+const SideNavigation = memo(function SideNavigation({
+	docs,
 	decisions, 
 	isLoading,
 	error,
@@ -475,10 +489,10 @@ const SideNavigation = memo(function SideNavigation({
 
 	return (
 		<ErrorBoundary>
-			<div className={`relative bg-white/55 dark:bg-gray-900/45 backdrop-blur-lg border-r border-white/30 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/30 transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
+			<div className={`relative bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
 			{!isCollapsed && <ProjectSwitcher />}
 			{/* Search Bar */}
-			<div className={`${isCollapsed ? 'px-2' : 'px-4'} border-b border-white/30 dark:border-white/10 h-18 flex items-center relative`}>
+			<div className={`${isCollapsed ? 'px-2' : 'px-4'} border-b border-gray-200 dark:border-gray-800 h-18 flex items-center relative`}>
 				{/* Collapse Toggle Button - Always positioned on the border */}
 				<button
 					onClick={toggleCollapse}
@@ -501,7 +515,7 @@ const SideNavigation = memo(function SideNavigation({
 								placeholder="Search (⌘K)..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full pl-10 pr-8 py-2 border border-white/40 dark:border-white/10 rounded-lg bg-white/70 dark:bg-gray-800/60 backdrop-blur-md text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-stone-500 dark:focus:ring-stone-400 focus:border-transparent transition-colors duration-200"
+								className="w-full pl-10 pr-8 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-transparent transition-colors duration-200"
 							/>
 								{searchQuery && (
 									<button
@@ -519,7 +533,7 @@ const SideNavigation = memo(function SideNavigation({
 						<div className="flex items-center justify-center">
 							<button
 								onClick={expandAndFocusSearch}
-								className="flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+								className="flex items-center justify-center p-2 text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
 								title="Search (⌘K)"
 							>
 								<Icons.Search />
@@ -639,20 +653,6 @@ const SideNavigation = memo(function SideNavigation({
 					</div>
 				)}
 				
-				{/* Task loading only changes the count; navigation remains stable. */}
-				{!isCollapsed && (
-					<div className="px-4 py-4">
-						<div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-							<span className="text-gray-500 dark:text-gray-400"><Icons.Tasks /></span>
-							<span className="text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 whitespace-nowrap">
-								Tasks (<NavigationCount count={taskCount} isLoading={isLoading} error={error} label="task" />)
-							</span>
-						</div>
-						{isLoading && (
-							<LoadingPhase className="mt-2 text-xs text-gray-500 dark:text-gray-400" />
-						)}
-					</div>
-				)}
 
 				{!isCollapsed && (
 					<div className="px-4 space-y-1">
@@ -663,7 +663,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -678,7 +678,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -693,7 +693,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -708,7 +708,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -723,7 +723,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -738,7 +738,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -753,7 +753,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -768,7 +768,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -897,7 +897,7 @@ const SideNavigation = memo(function SideNavigation({
 													`flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
 														isActive
 															? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-															: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+															: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 													}`
 												}
 											>
@@ -922,7 +922,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -938,7 +938,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -955,7 +955,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -971,7 +971,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -988,7 +988,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -1005,7 +1005,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -1022,7 +1022,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -1039,7 +1039,7 @@ const SideNavigation = memo(function SideNavigation({
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`
 							}
 						>
@@ -1057,7 +1057,7 @@ const SideNavigation = memo(function SideNavigation({
 								className={`flex items-center justify-center p-3 rounded-md transition-colors duration-200 w-full ${
 									location.pathname.startsWith('/documentation')
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`}
 						>
 							<div className="w-6 h-6 flex items-center justify-center">
@@ -1074,7 +1074,7 @@ const SideNavigation = memo(function SideNavigation({
 								className={`flex items-center justify-center p-3 rounded-md transition-colors duration-200 w-full ${
 									location.pathname.startsWith('/decisions')
 										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
-										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+										: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 								}`}
 						>
 							<div className="w-6 h-6 flex items-center justify-center">
@@ -1094,7 +1094,7 @@ const SideNavigation = memo(function SideNavigation({
 							`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
 								isActive
 									? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-									: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+									: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 							}`
 						}
 					>
@@ -1110,7 +1110,7 @@ const SideNavigation = memo(function SideNavigation({
 							`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 								isActive
 									? 'bg-stone-50 dark:bg-stone-900/30 text-stone-700 dark:text-stone-400'
-									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+									: 'text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
 							}`
 						}
 					>

@@ -72,7 +72,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
           {LEGEND.map(item => (
             <li key={item.label} className="flex items-center gap-1.5">
               <span
-                className="inline-block w-3 h-3 rounded-full border border-white/30"
+                className="inline-block w-3 h-3 rounded-[4px] border border-white/30"
                 style={{ backgroundColor: item.hex, opacity: 0.85 }}
               />
               {item.label}
