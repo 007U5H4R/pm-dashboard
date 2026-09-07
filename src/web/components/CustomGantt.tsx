@@ -90,7 +90,7 @@ function ProgressRing({ percent, color }: { percent: number; color: string }) {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - percent / 100);
   return (
-    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/10 dark:bg-black/20 border border-white/15 dark:border-white/10 backdrop-blur-sm shrink-0">
+    <span className="inline-flex items-center justify-center w-8 h-8 shrink-0">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${percent}% complete`}>
         <circle
           cx={size / 2}
