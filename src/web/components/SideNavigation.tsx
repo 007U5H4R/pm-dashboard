@@ -12,6 +12,7 @@ import {
 } from '../../types';
 import ErrorBoundary from './ErrorBoundary';
 import ProjectSwitcher from './ProjectSwitcher';
+import { CAMPFIRE_LOGO } from '../assets/logo';
 import { createUrlPath, sanitizeUrlTitle } from '../utils/urlHelpers';
 import { apiClient } from '../lib/api';
 import { parseSearchCommandQuery } from '../utils/search-command-query';
@@ -496,6 +497,10 @@ const SideNavigation = memo(function SideNavigation({
 	return (
 		<ErrorBoundary>
 			<div className={`relative bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
+			<div className={`flex items-center border-b border-gray-200 dark:border-gray-800 ${isCollapsed ? 'justify-center py-3' : 'gap-2 px-4 py-3'}`}>
+				<img src={CAMPFIRE_LOGO} alt="Campfire Board" className="w-8 h-8 shrink-0" />
+				{!isCollapsed && <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Campfire Board</span>}
+			</div>
 			{!isCollapsed && <ProjectSwitcher />}
 			{/* Search Bar */}
 			<div className={`${isCollapsed ? 'px-2' : 'px-4'} border-b border-gray-200 dark:border-gray-800 h-18 flex items-center relative`}>
