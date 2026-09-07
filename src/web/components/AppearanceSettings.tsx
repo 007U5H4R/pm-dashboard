@@ -12,11 +12,15 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export default function AppearanceSettings() {
 	const { appearance, update } = useAppearance();
 	const [busy, setBusy] = useState(false);
+	const [saved, setSaved] = useState(false);
 
 	const pick = async (patch: AppearanceValues) => {
 		setBusy(true);
+		setSaved(false);
 		try {
 			await update(patch);
+			setSaved(true);
+			window.setTimeout(() => setSaved(false), 2000);
 		} finally {
 			setBusy(false);
 		}
@@ -24,10 +28,35 @@ export default function AppearanceSettings() {
 
 	return (
 		<div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-			<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Appearance</h2>
-			<p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Personalize this project's icon and backgrounds. Saved for the project.</p>
+			<div className="flex items-center gap-2 mb-1">
+				<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
+				{saved && (
+					<span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
+						<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+						Saved
+					</span>
+				)}
+			</div>
+			<p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Personalize this project's icon and backgrounds — changes save automatically (no need for the Save button below).</p>
 
 			<div className={`space-y-6 ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
+				{/* Project description (2-liner, shown in the top bar) */}
+				<section>
+					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project description</h3>
+					<textarea
+						key={appearance.description ?? ''}
+						defaultValue={appearance.description ?? ''}
+						onBlur={(e) => {
+							const v = e.target.value.trim();
+							if (v !== (appearance.description ?? '')) void pick({ description: v });
+						}}
+						rows={2}
+						maxLength={200}
+						placeholder="A short two-line description of this project (shown in the top bar)…"
+						className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 resize-none"
+					/>
+				</section>
+
 				{/* Project icon */}
 				<section>
 					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Project icon</h3>

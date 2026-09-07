@@ -20,7 +20,12 @@ const Navigation: React.FC<NavigationProps> = ({projectName, loadingMessage}) =>
                             <ProjectIcon name={projectName} theme={appearance.icon} className="w-6 h-6" />
                         </span>
                     )}
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{projectName || 'Loading...'}</h1>
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{projectName || 'Loading...'}</h1>
+                        {appearance.description && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 max-w-xl">{appearance.description}</p>
+                        )}
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
                     <BranchIndexingIndicator message={loadingMessage} />

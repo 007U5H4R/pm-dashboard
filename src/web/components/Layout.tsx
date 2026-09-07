@@ -64,7 +64,7 @@ export default function Layout({
 							<div
 								aria-hidden="true"
 								className="pointer-events-none absolute inset-0"
-								style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.06 }}
+								style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.08 }}
 							/>
 						)}
 						<div className="relative min-h-full">

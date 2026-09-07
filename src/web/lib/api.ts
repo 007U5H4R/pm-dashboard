@@ -192,6 +192,7 @@ export interface AppearanceSettings {
 	icon?: string;
 	doodleBg?: string;
 	ganttBg?: string;
+	description?: string;
 }
 
 export class ApiClient {

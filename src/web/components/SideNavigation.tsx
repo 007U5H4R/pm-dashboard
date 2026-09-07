@@ -662,6 +662,8 @@ const SideNavigation = memo(function SideNavigation({
 
 				{!isCollapsed && (
 					<div className="px-4 space-y-1">
+						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">PM Tools</p>
+
 						{/* Board Navigation */}
 						<NavLink
 							to="/board"
@@ -706,6 +708,23 @@ const SideNavigation = memo(function SideNavigation({
 							<Icons.Workflow />
 							<span className="ml-3 text-sm font-medium">Workflow</span>
 						</NavLink>
+
+						{/* Statistics Navigation */}
+						<NavLink
+							to="/statistics"
+							className={({ isActive }) =>
+								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
+									isActive
+										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
+										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+								}`
+							}
+						>
+							<Icons.Statistics />
+							<span className="ml-3 text-sm font-medium">Statistics</span>
+						</NavLink>
+
+						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Details</p>
 
 						{/* Tasks Navigation */}
 						<NavLink
@@ -767,20 +786,6 @@ const SideNavigation = memo(function SideNavigation({
 							<span className="ml-3 text-sm font-medium">Drafts</span>
 						</NavLink>
 
-						{/* Statistics Navigation */}
-						<NavLink
-							to="/statistics"
-							className={({ isActive }) =>
-								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
-									isActive
-										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-										: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
-								}`
-							}
-						>
-							<Icons.Statistics />
-							<span className="ml-3 text-sm font-medium">Statistics</span>
-						</NavLink>
 					</div>
 				)}
 
