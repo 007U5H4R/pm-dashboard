@@ -23,7 +23,7 @@ const Navigation: React.FC<NavigationProps> = ({projectName, loadingMessage}) =>
                     <div className="min-w-0">
                         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight">{projectName || 'Loading...'}</h1>
                         {appearance.description && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 max-w-xl">{appearance.description}</p>
+                            <p className="text-xs italic text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 max-w-xl">{appearance.description}</p>
                         )}
                     </div>
                 </div>

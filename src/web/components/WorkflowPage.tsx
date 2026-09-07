@@ -5,6 +5,7 @@ import CustomGantt from './CustomGantt';
 import { BOARD_BG } from '../assets/boardBg';
 import { GANTT_BACKGROUNDS } from '../assets/gantt-backgrounds';
 import { useAppearance } from '../contexts/AppearanceContext';
+import { useBgBrightness } from '../lib/use-bg-brightness';
 
 /** One schedule unit = one hour in the Gantt views (see CustomGantt). */
 const UNIT_MS = 86_400_000;
@@ -75,11 +76,13 @@ const WorkflowPage: React.FC<WorkflowPageProps> = ({ tasks, docs, projectName })
   }, [tasks, docs]);
 
   const { appearance } = useAppearance();
-  const ganttBgUrl = (appearance.ganttBg && GANTT_BACKGROUNDS[appearance.ganttBg]) || BOARD_BG;
+  const chosenBg = appearance.ganttBg;
+  const ganttBgUrl = chosenBg ? (chosenBg.startsWith('data:') ? chosenBg : GANTT_BACKGROUNDS[chosenBg]) || BOARD_BG : BOARD_BG;
+  const tone = useBgBrightness(ganttBgUrl);
 
   return (
     <div className="p-4 min-h-full bg-cover bg-center" style={{ backgroundImage: `url(${ganttBgUrl})` }}>
-      <h1 className="mb-3 px-1 text-xl font-bold text-white">{projectName} — Workflow</h1>
+      <h1 className={`mb-3 px-1 text-xl font-bold ${tone === 'light' ? 'text-gray-900' : 'text-white'}`}>{projectName} — Workflow</h1>
       <CustomGantt tasks={stageTasks} projectName={`${projectName} workflow`} percentById={percentById} />
     </div>
   );

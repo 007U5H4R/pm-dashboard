@@ -40,7 +40,7 @@ export default function Layout({
 	const { appearance } = useAppearance();
 	// Doodle background shows on every page EXCEPT the board, Gantt, and Workflow (those keep their
 	// own backgrounds). The doodle is the project's chosen one, else its theme default.
-	const doodleExcluded = ['/board', '/gantt', '/workflow'].some((p) => location.pathname.startsWith(p));
+	const doodleExcluded = ['/gantt', '/workflow'].some((p) => location.pathname.startsWith(p));
 	const doodleKey = appearance.doodleBg || projectTheme(projectName);
 	const doodleUrl = !doodleExcluded ? DOODLES[doodleKey] : undefined;
 	return (
@@ -64,7 +64,7 @@ export default function Layout({
 							<div
 								aria-hidden="true"
 								className="pointer-events-none absolute inset-0"
-								style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '460px', opacity: 0.08 }}
+								style={{ backgroundImage: `url(${doodleUrl})`, backgroundSize: '420px', opacity: 0.1 }}
 							/>
 						)}
 						<div className="relative min-h-full">

@@ -665,7 +665,7 @@ const Board: React.FC<BoardProps> = ({
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already clears the selection for keyboard users.
     <div
-      className="relative isolate w-full min-h-full bg-gray-50 dark:bg-gray-900"
+      className="relative isolate w-full min-h-full"
       onClick={(event) => {
         if (selectedTaskIds.length > 0 && event.target === event.currentTarget) clearSelection();
       }}
