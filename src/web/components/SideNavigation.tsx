@@ -497,9 +497,13 @@ const SideNavigation = memo(function SideNavigation({
 	return (
 		<ErrorBoundary>
 			<div className={`relative bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 flex flex-col min-h-full z-10 ${isCollapsed ? 'w-16' : 'w-80 min-w-80'}`}>
-			<div className={`flex items-center border-b border-gray-200 dark:border-gray-800 ${isCollapsed ? 'justify-center py-3' : 'gap-2 px-4 py-3'}`}>
-				<img src={CAMPFIRE_LOGO} alt="Campfire Board" className="w-8 h-8 shrink-0" />
-				{!isCollapsed && <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Campfire Board</span>}
+			<div className={`flex items-center border-b border-gray-200 dark:border-gray-800 ${isCollapsed ? 'justify-center py-3' : 'gap-2.5 px-4 py-3'}`}>
+				<img src={CAMPFIRE_LOGO} alt="Campfire Board" className="w-9 h-9 shrink-0" />
+				{!isCollapsed && (
+					<span className="font-serif font-bold uppercase tracking-wider text-sm bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 bg-clip-text text-transparent">
+						Campfire Board
+					</span>
+				)}
 			</div>
 			{!isCollapsed && <ProjectSwitcher />}
 			{/* Search Bar */}
