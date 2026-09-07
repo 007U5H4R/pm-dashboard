@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BOARD_BG } from '../assets/boardBg';
 import { type Milestone, type Task } from '../../types';
 import { apiClient, type ReorderTaskPayload } from '../lib/api';
 import { buildLanes, DEFAULT_LANE_KEY, groupTasksByLaneAndStatus, type LaneMode, sortTasksForStatus } from '../lib/lanes';
@@ -652,19 +653,23 @@ const Board: React.FC<BoardProps> = ({
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: Escape already clears the selection for keyboard users.
     <div
-      className="relative w-full"
+      className="relative isolate w-full"
       onClick={(event) => {
         if (selectedTaskIds.length > 0 && event.target === event.currentTarget) clearSelection();
       }}
     >
-      {/* Decorative blurred backdrop for the frosted-glass board. Muted color blobs, kept behind
-          every column and card so the frost reads as glass without hurting text contrast. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-indigo-300/40 dark:bg-indigo-500/15 blur-3xl" />
-        <div className="absolute top-1/4 -right-20 h-80 w-80 rounded-full bg-rose-300/30 dark:bg-rose-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-teal-300/30 dark:bg-teal-500/10 blur-3xl" />
-        <div className="absolute bottom-10 right-1/3 h-72 w-72 rounded-full bg-violet-300/30 dark:bg-violet-600/10 blur-3xl" />
-      </div>
+      {/* Decorative backdrop for the frosted-glass board: the warm gradient image, plus a light
+          scrim so text that sits directly on it (headings, column titles) keeps enough contrast.
+          `isolate` on the root above gives this its own stacking context so the `-z-10` layers
+          stay behind the board's own columns and cards instead of escaping to the app shell's
+          stacking context and landing under Layout's opaque page background (the bug that made
+          an earlier backdrop attempt invisible). */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center"
+        style={{ backgroundImage: `url(${BOARD_BG})` }}
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-white/25 dark:bg-black/30" />
 
       {updateError && (
         <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-700 dark:bg-red-900/40 dark:text-red-200 transition-colors duration-200">

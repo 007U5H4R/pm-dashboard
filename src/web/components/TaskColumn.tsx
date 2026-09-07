@@ -242,8 +242,8 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
         isDragOver && (dragSourceStatus !== title || (dragSourceLane ?? null) !== (laneId ?? null))
           ? 'bg-green-50/80 dark:bg-green-900/30 border border-green-300 dark:border-green-600 border-dashed backdrop-blur-[2px]'
           : isEmpty
-            ? 'bg-white/10 dark:bg-white/5 border border-white/15 dark:border-white/5'
-            : 'bg-white/15 dark:bg-white/[0.04] border border-white/15 dark:border-white/5 backdrop-blur-[2px]'
+            ? 'bg-white/20 dark:bg-white/10 border border-white/20 dark:border-white/10'
+            : 'bg-white/25 dark:bg-white/10 border border-white/20 dark:border-white/10 backdrop-blur-[2px]'
       }`}
       onDrop={handleDrop}
       onDragOver={handleDragOverColumn}
