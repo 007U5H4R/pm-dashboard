@@ -6,8 +6,19 @@ import StoredDate from './StoredDate';
 import ProjectBadge from './ProjectBadge';
 import TaskTypeBadge from './TaskTypeBadge';
 
+// Pastel category palette (user-provided); labels get a deterministic color so a given label reads
+// the same everywhere. Dark text keeps contrast on the light pastels.
+const LABEL_PALETTE = ['#B6E3CE', '#D0E6A5', '#FFDD94', '#FA897B', '#CCABDB'];
+
+function labelColor(label: string): string {
+  let hash = 0;
+  for (let i = 0; i < label.length; i += 1) hash = (hash * 31 + label.charCodeAt(i)) >>> 0;
+  return LABEL_PALETTE[hash % LABEL_PALETTE.length]!;
+}
+
 interface TaskCardProps {
   task: Task;
+  childTasks?: Task[];
   onUpdate: (taskId: string, updates: Partial<Task>) => void;
   onEdit: (task: Task) => void;
   onDragStart?: () => void;
@@ -61,6 +72,7 @@ const buildSelectionDragImage = (source: HTMLElement, count: number): HTMLElemen
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  childTasks,
   onEdit,
   onDragStart,
   onDragEnd,
@@ -77,6 +89,50 @@ const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const [isDragging, setIsDragging] = React.useState(false);
   const [showBranchTooltip, setShowBranchTooltip] = React.useState(false);
+  const [showSubtasks, setShowSubtasks] = React.useState(false);
+
+  // The working model/agent: a "model:<name>" label if present, else the assignee (the model is assigned
+  // to the ticket like a person in Jira). Drives the avatar; the label form is hidden from the chip row.
+  const modelName = React.useMemo(() => {
+    const match = task.labels.find(label => label.toLowerCase().startsWith('model:'));
+    if (match) return match.slice(match.indexOf(':') + 1).trim();
+    const firstAssignee = task.assignee.find(a => a.trim());
+    return firstAssignee ? firstAssignee.replace(/^@/, '').trim() : null;
+  }, [task.labels, task.assignee]);
+
+  const displayLabels = React.useMemo(
+    () => task.labels.filter(label => !label.toLowerCase().startsWith('model:')),
+    [task.labels]
+  );
+
+  // Render the assigned model/agent as a Jira-style avatar: initials + a color derived from the name.
+  const modelAvatar = React.useMemo(() => {
+    if (!modelName) return null;
+    const parts = modelName.split(/[\s\-_./]+/).filter(Boolean);
+    const initials = (
+      parts.length >= 2 ? `${parts[0]?.[0] ?? ''}${parts[1]?.[0] ?? ''}` : modelName.slice(0, 2)
+    ).toUpperCase();
+    const palette = [
+      'bg-indigo-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500',
+      'bg-sky-500', 'bg-violet-500', 'bg-teal-500', 'bg-fuchsia-500',
+    ];
+    let hash = 0;
+    for (let i = 0; i < modelName.length; i += 1) hash = (hash * 31 + modelName.charCodeAt(i)) >>> 0;
+    return { initials, color: palette[hash % palette.length] };
+  }, [modelName]);
+
+  const children = childTasks ?? [];
+  const doneChildren = children.filter(child => child.status === 'Done').length;
+
+  // A ticket with no subtasks still shows progress from its own status (Done = full green bar).
+  const ownStatusPercent = (() => {
+    switch (task.status.trim().toLowerCase()) {
+      case 'done': return 100;
+      case 'in review': return 75;
+      case 'in progress': return 50;
+      default: return 0;
+    }
+  })();
 
   // Check if task is from another branch (read-only)
   const isFromOtherBranch = Boolean(task.branch);
@@ -251,7 +307,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           {(() => {
             const badge = getPriorityBadge(task.priority);
             return badge ? (
-              <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${badge.bg} ${badge.text} transition-colors duration-200`}>
+              <span className={`shrink-0 px-1.5 py-0.5 text-[10px] font-semibold rounded ${badge.bg} ${badge.text} transition-colors duration-200`}>
                 {badge.label}
               </span>
             ) : null;
@@ -259,32 +315,125 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Title */}
-        <h4 className={`font-semibold text-sm line-clamp-2 transition-colors duration-200 ${
-          isFromOtherBranch
-            ? 'text-white/60'
-            : 'text-white'
-        }`}>
+        <h4
+          className={`font-semibold text-sm line-clamp-2 cursor-default transition-colors duration-200 ${
+            isFromOtherBranch
+              ? 'text-white/60'
+              : 'text-white'
+          }`}
+          title={task.title}
+        >
           {task.title}
         </h4>
 
         <AcceptanceCriteriaProgress task={task} density="card" className="mt-2" />
 
         {/* Labels - limit to 3 */}
-        {task.labels.length > 0 && (
+        {displayLabels.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {task.labels.slice(0, 3).map(label => (
+            {displayLabels.slice(0, 3).map(label => (
               <span
                 key={label}
-                className="inline-block px-1.5 py-0.5 text-[10px] bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors duration-200"
+                className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded transition-colors duration-200"
+                style={{ backgroundColor: labelColor(label), color: '#1f2937' }}
               >
                 {label}
               </span>
             ))}
-            {task.labels.length > 3 && (
+            {displayLabels.length > 3 && (
               <span className="inline-block px-1.5 py-0.5 text-[10px] text-white/60">
-                +{task.labels.length - 3}
+                +{displayLabels.length - 3}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Subtasks - collapsible child progress */}
+        {children.length > 0 && (
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowSubtasks(prev => !prev);
+              }}
+              className="flex w-full items-center justify-between gap-2 rounded-lg bg-white/5 px-2 py-1 text-[11px] text-white/80 hover:bg-white/10 transition-colors duration-150"
+              aria-expanded={showSubtasks}
+            >
+              <span className="flex items-center gap-1.5">
+                <svg
+                  className={`w-3 h-3 transition-transform duration-150 ${showSubtasks ? 'rotate-90' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+                {children.length} {children.length === 1 ? 'subtask' : 'subtasks'}
+              </span>
+              <span className="font-medium tabular-nums">{doneChildren}/{children.length} done</span>
+            </button>
+            {children.length > 0 && (
+              <div
+                className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-sm"
+                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${Math.round((doneChildren / children.length) * 100)}%`,
+                    backgroundColor: 'rgba(16,185,129,0.6)',
+                    backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 75%)',
+                    boxShadow: 'inset 0 0 0 1px rgba(16,185,129,0.5), 0 1px 2px rgba(0,0,0,0.3)',
+                  }}
+                />
+              </div>
+            )}
+            {showSubtasks && (
+              <ul className="mt-1.5 space-y-1">
+                {children.map(child => (
+                  <li
+                    key={child.id}
+                    className="flex items-center gap-2 rounded px-1.5 py-1 text-[11px] text-white/75 hover:bg-white/5 cursor-pointer"
+                    title={`${child.id} · ${child.title}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEdit(child);
+                    }}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                        child.status === 'Done'
+                          ? 'bg-emerald-400'
+                          : child.status === 'In Progress' || child.status === 'In Review'
+                            ? 'bg-amber-400'
+                            : 'bg-white/30'
+                      }`}
+                    />
+                    <span className="shrink-0 font-mono text-white/70">{child.id}</span>
+                    <span className="ml-auto shrink-0 text-[10px] font-medium text-white/50">{child.status}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {/* Status progress bar for tickets without subtasks (own status drives the fill) */}
+        {children.length === 0 && (
+          <div
+            className="mt-2 h-2 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-sm"
+            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${ownStatusPercent}%`,
+                backgroundColor: 'rgba(16,185,129,0.6)',
+                backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 75%)',
+                boxShadow: 'inset 0 0 0 1px rgba(16,185,129,0.5), 0 1px 2px rgba(0,0,0,0.3)',
+              }}
+            />
           </div>
         )}
 
@@ -292,9 +441,19 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-white/70 mt-2 pt-1.5 border-t border-white/10 transition-colors duration-200">
           <span>{formatRelativeDate(task.createdDate)}</span>
           {task.dueDate && <span>Due: <StoredDate value={task.dueDate} dateFormat={dateFormat} /></span>}
-          {task.assignee.length > 0 && (
+          {task.assignee.length > 0 && !modelAvatar && (
             <span className="truncate max-w-[80px]" title={task.assignee.join(', ')}>
               {task.assignee[0]}
+            </span>
+          )}
+          {modelAvatar && (
+            <span
+              className={`ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-white ${modelAvatar.color} text-[9px] font-bold text-white shadow-sm`}
+              style={{ borderRadius: '9999px' }}
+              title={`Model: ${modelName}`}
+              aria-label={`Model: ${modelName}`}
+            >
+              {modelAvatar.initials}
             </span>
           )}
         </div>

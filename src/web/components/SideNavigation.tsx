@@ -194,6 +194,16 @@ const Icons = {
 			<circle cx="12" cy="12" r="1" strokeWidth={2} />
 		</svg>
 	),
+	Ticket: () => (
+		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4V7a2 2 0 012-2z" />
+		</svg>
+	),
+	Workflow: () => (
+		<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h6v4H4zM14 14h6v4h-6zM7 10v4a2 2 0 002 2h5M17 10V8a2 2 0 00-2-2h-1" />
+		</svg>
+	),
 };
 
 // Shared render path for sidebar document links (search results, folder tree, and flat list).
@@ -673,7 +683,22 @@ const SideNavigation = memo(function SideNavigation({
 							}
 						>
 							<Icons.Gantt />
-							<span className="ml-3 text-sm font-medium">Gantt</span>
+							<span className="ml-3 text-sm font-medium">Execution Gantt</span>
+						</NavLink>
+
+						{/* Workflow Navigation */}
+						<NavLink
+							to="/workflow"
+							className={({ isActive }) =>
+								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
+									isActive
+										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
+										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+								}`
+							}
+						>
+							<Icons.Workflow />
+							<span className="ml-3 text-sm font-medium">Workflow</span>
 						</NavLink>
 
 						{/* Tasks Navigation */}
@@ -689,6 +714,21 @@ const SideNavigation = memo(function SideNavigation({
 						>
 							<Icons.List />
 							<span className="ml-3 text-sm font-medium">All Tasks</span>
+						</NavLink>
+
+						{/* Tickets Navigation */}
+						<NavLink
+							to="/tickets"
+							className={({ isActive }) =>
+								`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
+									isActive
+										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
+										: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+								}`
+							}
+						>
+							<Icons.Ticket />
+							<span className="ml-3 text-sm font-medium">Tickets</span>
 						</NavLink>
 
 						{/* Milestones Navigation */}
@@ -893,7 +933,7 @@ const SideNavigation = memo(function SideNavigation({
 						<NavLink
 							to="/gantt"
 							data-tooltip-id="sidebar-tooltip"
-							data-tooltip-content="Gantt"
+							data-tooltip-content="Execution Gantt"
 							className={({ isActive }) =>
 								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
 									isActive
@@ -904,6 +944,23 @@ const SideNavigation = memo(function SideNavigation({
 						>
 							<div className="w-6 h-6 flex items-center justify-center">
 								<Icons.Gantt />
+							</div>
+						</NavLink>
+						{/* Workflow Navigation */}
+						<NavLink
+							to="/workflow"
+							data-tooltip-id="sidebar-tooltip"
+							data-tooltip-content="Workflow"
+							className={({ isActive }) =>
+								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
+									isActive
+										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
+										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+								}`
+							}
+						>
+							<div className="w-6 h-6 flex items-center justify-center">
+								<Icons.Workflow />
 							</div>
 						</NavLink>
 						<NavLink
@@ -920,6 +977,23 @@ const SideNavigation = memo(function SideNavigation({
 						>
 							<div className="w-6 h-6 flex items-center justify-center">
 								<Icons.List />
+							</div>
+						</NavLink>
+						{/* Tickets Navigation */}
+						<NavLink
+							to="/tickets"
+							data-tooltip-id="sidebar-tooltip"
+							data-tooltip-content="Tickets"
+							className={({ isActive }) =>
+								`flex items-center justify-center p-3 rounded-md transition-colors duration-200 ${
+									isActive
+										? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400'
+										: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+								}`
+							}
+						>
+							<div className="w-6 h-6 flex items-center justify-center">
+								<Icons.Ticket />
 							</div>
 						</NavLink>
 						{/* Drafts Navigation */}

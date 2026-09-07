@@ -87,9 +87,20 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 		() => [...milestoneEntities, ...archivedMilestones],
 		[milestoneEntities, archivedMilestones],
 	);
+	// Only surface milestones that exist as real milestone files; drop ones implied solely by a task's
+	// frontmatter so the sidebar view reflects the milestones/ folder, not ad-hoc task metadata.
+	const fileBackedMilestoneKeys = useMemo(() => {
+		const keys = new Set<string>();
+		for (const milestone of milestoneEntities) keys.add(milestoneKey(milestone.id));
+		for (const milestone of archivedMilestones) keys.add(milestoneKey(milestone.id));
+		return keys;
+	}, [milestoneEntities, archivedMilestones]);
 	const buckets = useMemo(
-		() => buildMilestoneBuckets(tasks, milestoneEntities, statuses, { archivedMilestoneIds, archivedMilestones }),
-		[tasks, milestoneEntities, statuses, archivedMilestoneIds, archivedMilestones],
+		() =>
+			buildMilestoneBuckets(tasks, milestoneEntities, statuses, { archivedMilestoneIds, archivedMilestones }).filter(
+				(bucket) => bucket.isNoMilestone || fileBackedMilestoneKeys.has(milestoneKey(bucket.milestone)),
+			),
+		[tasks, milestoneEntities, statuses, archivedMilestoneIds, archivedMilestones, fileBackedMilestoneKeys],
 	);
 	const searchQueryTrimmed = searchQuery.trim();
 	const isSearchActive = searchQueryTrimmed.length > 0;

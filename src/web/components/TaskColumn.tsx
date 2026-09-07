@@ -8,6 +8,7 @@ import TaskCard from './TaskCard';
 interface TaskColumnProps {
   title: string;
   tasks: Task[];
+  childrenByParent?: Map<string, Task[]>;
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
   onEditTask: (task: Task) => void;
   onTaskReorder?: (payload: ReorderTaskPayload) => void;
@@ -62,6 +63,7 @@ const sortByCreatedDate = (tasks: Task[], direction: CreatedDateSortDirection): 
 const TaskColumn: React.FC<TaskColumnProps> = ({
   title,
   tasks,
+  childrenByParent,
   onTaskUpdate,
   onEditTask,
   onTaskReorder,
@@ -359,6 +361,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
             
             <TaskCard
               task={task}
+              childTasks={childrenByParent?.get(task.id)}
               onUpdate={onTaskUpdate}
               onEdit={onEditTask}
               isSelected={selectedTaskIds?.includes(task.id) ?? false}

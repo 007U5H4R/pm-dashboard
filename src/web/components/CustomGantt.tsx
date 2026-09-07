@@ -1,39 +1,24 @@
 import { useMemo } from 'react';
 import type { Task } from '../../types';
 import { computeSchedule, type ScheduledTask } from '../lib/schedule';
+import { childrenByParent, rollupPercent, rollupStatus } from '../utils/ticket-rollup';
 
 export interface CustomGanttProps {
   tasks: Task[];
   projectName: string;
+  /** Optional per-task percent override (id -> 0..100). Used by views like Workflow where progress
+   * comes from real data rather than the status-derived default. UI is otherwise identical. */
+  percentById?: Record<string, number>;
 }
 
-const DAY_MS = 86_400_000;
-const DAY_WIDTH = 32;
+/** The scheduler lays tasks out with 1 story point = 1 day-unit; this view reinterprets each unit as
+ * one hour, so the axis reads in elapsed hours rather than calendar dates. */
+const UNIT_MS = 86_400_000;
+const HOUR_WIDTH = 52;
 const LEFT_PANEL_WIDTH = 360;
 const ROW_HEIGHT = 48;
-
-const AVATAR_PALETTE = [
-  'bg-pink-500',
-  'bg-purple-500',
-  'bg-indigo-500',
-  'bg-teal-500',
-  'bg-orange-500',
-  'bg-cyan-500',
-  'bg-rose-500',
-  'bg-lime-600',
-];
-
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash * 31 + value.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-function startOfUtcDay(date: Date): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-}
+const ROW_GAP = 6;
+const ROW_STRIDE = ROW_HEIGHT + ROW_GAP;
 
 /** Converts a #rrggbb hex color to an rgba() string at the given alpha, for translucent
  * liquid-glass fills over the dark gradient backdrop. */
@@ -55,32 +40,14 @@ export function statusColor(task: ScheduledTask): string {
   return '#cbd5e1';
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0]}${parts[parts.length - 1]![0]}`.toUpperCase();
+/** Whole hours the task is estimated to take, from its story-point label (1 pt = 1 hour here). */
+function estimatedHours(task: ScheduledTask): number {
+  return Math.max(1, Math.round(task.points ?? 1));
 }
 
-/** Multiple assignees collapse to the first initial + a "+n" count. */
-export function avatarLabel(assignee: string[]): string {
-  if (assignee.length === 0) return '';
-  if (assignee.length === 1) return initials(assignee[0]!);
-  return `${assignee[0]!.trim()[0]?.toUpperCase() ?? '?'}+${assignee.length - 1}`;
-}
-
-function Avatar({ assignee }: { assignee: string[] }) {
-  if (assignee.length === 0) return null;
-  const colorClass = AVATAR_PALETTE[hashString(assignee.join(',')) % AVATAR_PALETTE.length];
-  return (
-    <span
-      data-testid="gantt-avatar"
-      title={assignee.join(', ')}
-      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-semibold text-white ring-2 ring-black/30 dark:ring-black/40 ${colorClass}`}
-    >
-      {avatarLabel(assignee)}
-    </span>
-  );
+function hoursLabel(task: ScheduledTask): string {
+  const hours = estimatedHours(task);
+  return `${hours}h`;
 }
 
 function ProgressRing({ percent, color }: { percent: number; color: string }) {
@@ -117,10 +84,7 @@ function ProgressRing({ percent, color }: { percent: number; color: string }) {
   );
 }
 
-/** ScheduledTask plus the raw assignee list, joined in from the source tasks for avatar rendering. */
-type GanttRowTask = ScheduledTask & { assignee: string[] };
-
-function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; width: number }) {
+function GanttBar({ task, left, width }: { task: ScheduledTask; left: number; width: number }) {
   const status = task.status.trim().toLowerCase();
   const color = statusColor(task);
   const isDone = status === 'done' && !task.blocked;
@@ -130,29 +94,26 @@ function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; wid
     <div
       data-testid={`gantt-bar-${task.id}`}
       data-status={task.blocked ? 'blocked' : status}
-      className="absolute top-1/2 -translate-y-1/2 h-6 rounded-full bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 backdrop-blur-sm overflow-hidden"
+      className="absolute top-1/2 -translate-y-1/2 h-7 rounded-full bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 backdrop-blur-sm overflow-hidden"
       style={{
         left,
-        width: Math.max(width, DAY_WIDTH * 0.4),
+        width: Math.max(width, HOUR_WIDTH * 0.4),
+        borderRadius: '9999px',
         boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.25)',
       }}
-      title={`${task.title} · ${task.percent}%${task.assignee?.length ? ` · ${task.assignee.join(', ')}` : ''}`}
+      title={`${task.title} · ${hoursLabel(task)} · ${task.percent}%`}
     >
       <div
         data-testid={`gantt-bar-fill-${task.id}`}
         className="h-full rounded-full"
         style={{
           width: `${task.percent}%`,
+          borderRadius: '9999px',
           backgroundColor: hexToRgba(color, 0.55),
           backgroundImage: `linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 45%, rgba(255, 255, 255, 0) 70%)`,
           boxShadow: `inset 0 0 0 1px ${hexToRgba(color, 0.5)}`,
         }}
       />
-      {task.assignee && task.assignee.length > 0 && (
-        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-10">
-          <Avatar assignee={task.assignee} />
-        </div>
-      )}
       {isDone && (
         <svg
           className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white"
@@ -176,52 +137,44 @@ function GanttBar({ task, left, width }: { task: GanttRowTask; left: number; wid
   );
 }
 
-/** Widened by one day on each side, per the spec's "pad a day each side". */
-function scheduleRange(tasks: ScheduledTask[]): { start: Date; end: Date } {
-  const starts = tasks.map(t => t.start.getTime());
-  const finishes = tasks.map(t => t.finish.getTime());
-  const start = startOfUtcDay(new Date(Math.min(...starts) - DAY_MS));
-  const end = startOfUtcDay(new Date(Math.max(...finishes) + DAY_MS));
-  return { start, end };
-}
-
-function buildDays(start: Date, end: Date): Date[] {
-  const days: Date[] = [];
-  for (let t = start.getTime(); t <= end.getTime(); t += DAY_MS) {
-    days.push(new Date(t));
-  }
-  return days;
-}
-
-interface MonthGroup {
+interface HourTick {
+  hour: number;
   label: string;
-  days: number;
 }
 
-function groupByMonth(days: Date[]): MonthGroup[] {
-  const groups: MonthGroup[] = [];
-  const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-  for (const day of days) {
-    const label = formatter.format(day);
-    const last = groups[groups.length - 1];
-    if (last && last.label === label) {
-      last.days += 1;
-    } else {
-      groups.push({ label, days: 1 });
-    }
+/** One tick per elapsed hour across the whole schedule span. */
+function buildHourTicks(totalHours: number): HourTick[] {
+  const ticks: HourTick[] = [];
+  const count = Math.max(1, Math.ceil(totalHours));
+  for (let hour = 0; hour <= count; hour += 1) {
+    ticks.push({ hour, label: `${hour}h` });
   }
-  return groups;
+  return ticks;
 }
 
-const WEEKDAY_FORMATTER = new Intl.DateTimeFormat('en-US', { weekday: 'narrow', timeZone: 'UTC' });
-
-export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
-  const schedule = useMemo(() => computeSchedule(tasks), [tasks]);
-  const assigneeById = useMemo(() => new Map(tasks.map(t => [t.id, t.assignee])), [tasks]);
-  const scheduledTasks: GanttRowTask[] = schedule.tasks.map(t => ({
-    ...t,
-    assignee: assigneeById.get(t.id) ?? [],
-  }));
+export default function CustomGantt({ tasks, projectName, percentById }: CustomGanttProps) {
+  // Gantt shows tickets (top-level tasks) only; subtasks are tracked inside their ticket elsewhere.
+  // A ticket with subtasks rolls up its status (color) from them and shows subtask completion % (ring).
+  const kidsByParent = useMemo(() => childrenByParent(tasks), [tasks]);
+  const ticketTasks = useMemo(
+    () => tasks.filter(t => !t.parentTaskId).map(t => {
+      const kids = kidsByParent.get(t.id);
+      return kids && kids.length > 0 ? { ...t, status: rollupStatus(kids) } : t;
+    }),
+    [tasks, kidsByParent]
+  );
+  const schedule = useMemo(() => computeSchedule(ticketTasks), [ticketTasks]);
+  // Rollup percent per ticket, then let an explicit percentById prop (e.g. Workflow) win.
+  const effectivePercent = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const [parentId, kids] of kidsByParent.entries()) {
+      if (kids.length > 0) map[parentId] = rollupPercent(kids);
+    }
+    return { ...map, ...(percentById ?? {}) };
+  }, [kidsByParent, percentById]);
+  const scheduledTasks: ScheduledTask[] = Object.keys(effectivePercent).length > 0
+    ? schedule.tasks.map(t => (effectivePercent[t.id] != null ? { ...t, percent: effectivePercent[t.id]! } : t))
+    : schedule.tasks;
 
   if (scheduledTasks.length === 0) {
     return (
@@ -234,12 +187,40 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
     );
   }
 
-  const { start: rangeStart, end: rangeEnd } = scheduleRange(scheduledTasks);
-  const days = buildDays(rangeStart, rangeEnd);
-  const months = groupByMonth(days);
-  const gridWidth = days.length * DAY_WIDTH;
-  const today = startOfUtcDay(new Date());
-  const todayOffset = today >= rangeStart && today <= rangeEnd ? (today.getTime() - rangeStart.getTime()) / DAY_MS * DAY_WIDTH : null;
+  // Elapsed-hours layout: anchor at the earliest start, measure every offset in schedule units (= hours).
+  const minStart = Math.min(...scheduledTasks.map(t => t.start.getTime()));
+  const maxFinish = Math.max(...scheduledTasks.map(t => t.finish.getTime()));
+  const totalHours = (maxFinish - minStart) / UNIT_MS;
+  const ticks = buildHourTicks(totalHours);
+  const gridWidth = Math.max(ticks.length - 1, 1) * HOUR_WIDTH;
+  const rowsHeight = scheduledTasks.length * ROW_STRIDE;
+
+  const rowIndexById = new Map(scheduledTasks.map((t, index) => [t.id, index]));
+  const geomById = new Map(
+    scheduledTasks.map((t, index) => {
+      const left = ((t.start.getTime() - minStart) / UNIT_MS) * HOUR_WIDTH;
+      const width = ((t.finish.getTime() - t.start.getTime()) / UNIT_MS) * HOUR_WIDTH;
+      const centerY = index * ROW_STRIDE + ROW_HEIGHT / 2;
+      return [t.id, { left, width, centerY }];
+    }),
+  );
+
+  // Dependency connectors: elbow from the end of each blocker's bar to the start of the dependent's bar.
+  const connectors = scheduledTasks.flatMap(task => {
+    const to = geomById.get(task.id);
+    if (!to) return [];
+    return task.dependencies.flatMap(depId => {
+      const from = geomById.get(depId);
+      if (from === undefined || !rowIndexById.has(depId)) return [];
+      const startX = from.left + from.width;
+      const startY = from.centerY;
+      const endX = to.left;
+      const endY = to.centerY;
+      const midX = Math.max(startX + 10, endX - 12);
+      const path = `M ${startX} ${startY} H ${midX} V ${endY} H ${endX}`;
+      return [{ key: `${depId}->${task.id}`, path, endX, endY }];
+    });
+  });
 
   return (
     <div
@@ -248,90 +229,108 @@ export default function CustomGantt({ tasks, projectName }: CustomGanttProps) {
       aria-label={`Gantt chart · ${projectName}`}
     >
       <div className="relative" style={{ width: LEFT_PANEL_WIDTH + gridWidth, minWidth: '100%' }}>
-        {todayOffset !== null && (
-          <div
-            data-testid="gantt-today-line"
-            className="absolute top-0 bottom-0 w-px bg-white/40 dark:bg-white/30 z-10"
-            style={{ left: LEFT_PANEL_WIDTH + todayOffset }}
-          />
-        )}
-
         {/* Header */}
-        <div className="flex sticky top-0 z-20 bg-black/40 dark:bg-black/50 backdrop-blur-lg border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 mb-2">
+        <div
+          className="flex sticky top-0 z-40 border border-white/15 dark:border-white/10 border-t-white/40 dark:border-t-white/20 rounded-2xl shadow-lg shadow-black/20 dark:shadow-black/40 mb-2"
+          style={{ backgroundColor: '#140e17' }}
+        >
           <div
-            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-white/70 bg-black/40 dark:bg-black/50 backdrop-blur-lg rounded-2xl"
-            style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT }}
+            className="sticky left-0 z-30 flex shrink-0 items-center gap-3 px-3 text-xs font-semibold text-white/70 rounded-2xl"
+            style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
           >
             <span className="flex-1">Title</span>
-            <span className="w-16">Duration</span>
+            <span className="w-16">Est. hours</span>
             <span className="w-20 text-right">Status</span>
           </div>
           <div style={{ width: gridWidth }}>
-            <div className="flex h-5 text-[11px] font-semibold text-white/70">
-              {months.map((month, index) => (
-                <div
-                  key={`${month.label}-${index}`}
-                  className="px-1.5 flex items-center"
-                  style={{ width: month.days * DAY_WIDTH }}
-                >
-                  {month.label}
-                </div>
-              ))}
-            </div>
+            <div className="flex h-5 items-center px-1.5 text-[11px] font-semibold text-white/70">Elapsed hours</div>
             <div className="flex" style={{ height: ROW_HEIGHT - 20 }}>
-              {days.map(day => (
+              {ticks.slice(0, -1).map(tick => (
                 <div
-                  key={day.toISOString()}
-                  className="shrink-0 flex items-center justify-center text-[10px] font-medium text-white/60"
-                  style={{ width: DAY_WIDTH }}
+                  key={tick.hour}
+                  className="shrink-0 flex items-center justify-start pl-1 text-[10px] font-medium text-white/60 border-l border-white/10"
+                  style={{ width: HOUR_WIDTH }}
                 >
-                  {`${WEEKDAY_FORMATTER.format(day)} ${day.getUTCDate()}`}
+                  {tick.label}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Rows */}
-        {scheduledTasks.map(task => {
-          const left = (task.start.getTime() - rangeStart.getTime()) / DAY_MS * DAY_WIDTH;
-          const width = (task.finish.getTime() - task.start.getTime()) / DAY_MS * DAY_WIDTH;
-          const color = statusColor(task);
-          return (
-            <div
-              key={task.id}
-              data-testid={`gantt-row-${task.id}`}
-              className="flex mb-1.5"
+        {/* Rows + dependency overlay */}
+        <div className="relative" style={{ minHeight: rowsHeight }}>
+          {scheduledTasks.map(task => {
+            const geom = geomById.get(task.id)!;
+            const color = statusColor(task);
+            return (
+              <div
+                key={task.id}
+                data-testid={`gantt-row-${task.id}`}
+                className="flex mb-1.5"
+              >
+                <div
+                  className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 border border-white/10 dark:border-white/5 rounded-2xl"
+                  style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT, backgroundColor: '#140e17' }}
+                >
+                  <span
+                    className="flex-1 truncate text-sm font-medium text-white cursor-default"
+                    title={task.title}
+                  >
+                    {task.title}
+                  </span>
+                  <span className="w-16 text-xs font-medium text-white/70">
+                    {hoursLabel(task)}
+                  </span>
+                  <span className="w-20 flex items-center justify-end gap-2">
+                    <span className="text-xs font-medium text-white/70">{`${task.percent}%`}</span>
+                    <ProgressRing percent={task.percent} color={color} />
+                  </span>
+                </div>
+                <div
+                  className="relative"
+                  style={{
+                    width: gridWidth,
+                    height: ROW_HEIGHT,
+                    backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px)',
+                    backgroundSize: `${HOUR_WIDTH}px 100%`,
+                  }}
+                >
+                  <GanttBar task={task} left={geom.left} width={geom.width} />
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Dependency connectors, drawn over the grid area (offset past the sticky left panel). */}
+          {connectors.length > 0 && (
+            <svg
+              data-testid="gantt-dependencies"
+              className="pointer-events-none absolute top-0 z-0"
+              style={{ left: LEFT_PANEL_WIDTH, width: gridWidth, height: rowsHeight }}
+              width={gridWidth}
+              height={rowsHeight}
+              aria-hidden="true"
             >
-              <div
-                className="sticky left-0 z-10 flex shrink-0 items-center gap-3 px-3 bg-black/30 dark:bg-black/40 backdrop-blur-lg border border-white/10 dark:border-white/5 rounded-2xl"
-                style={{ width: LEFT_PANEL_WIDTH, height: ROW_HEIGHT }}
-              >
-                <span className="flex-1 truncate text-sm font-medium text-white" title={task.title}>
-                  {task.title}
-                </span>
-                <span className="w-16 text-xs font-medium text-white/70">
-                  {`${task.days} day${task.days === 1 ? '' : 's'}`}
-                </span>
-                <span className="w-20 flex items-center justify-end gap-2">
-                  <span className="text-xs font-medium text-white/70">{`${task.percent}%`}</span>
-                  <ProgressRing percent={task.percent} color={color} />
-                </span>
-              </div>
-              <div
-                className="relative"
-                style={{
-                  width: gridWidth,
-                  height: ROW_HEIGHT,
-                  backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.12) 1px, transparent 1px)',
-                  backgroundSize: `${DAY_WIDTH}px 100%`,
-                }}
-              >
-                <GanttBar task={task} left={left} width={width} />
-              </div>
-            </div>
-          );
-        })}
+              <defs>
+                <marker id="gantt-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.5)" />
+                </marker>
+              </defs>
+              {connectors.map(connector => (
+                <path
+                  key={connector.key}
+                  d={connector.path}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  markerEnd="url(#gantt-arrow)"
+                />
+              ))}
+            </svg>
+          )}
+        </div>
       </div>
     </div>
   );

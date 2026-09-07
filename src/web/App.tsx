@@ -9,6 +9,7 @@ import DraftsList from './components/DraftsList';
 import Settings from './components/Settings';
 import Statistics from './components/Statistics';
 import GanttPage from './components/GanttPage';
+import WorkflowPage from './components/WorkflowPage';
 import MilestonesPage from './components/MilestonesPage';
 import TaskDetailsModal from './components/TaskDetailsModal';
 import InitializationScreen from './components/InitializationScreen';
@@ -974,6 +975,24 @@ function AppContent() {
     />
   );
 
+  // Tickets view: the same list, scoped to top-level tickets (subtasks live inside their parent).
+  const ticketListPage = (
+    <TaskList
+      onEditTask={handleEditTask}
+      onNewTask={handleNewTask}
+      tasks={tasks.filter((task) => !task.parentTaskId)}
+      availableStatuses={statuses}
+      availableLabels={availableLabels}
+      availableMilestones={milestones}
+      availablePriorities={config?.priorities}
+      milestoneEntities={milestoneEntities}
+      archivedMilestones={archivedMilestones}
+      onRefreshData={refreshData}
+      dateFormat={config?.dateFormat}
+      isLoading={isLoading}
+    />
+  );
+
   return (
     <ThemeProvider>
       <TaskIdIndexProvider tasks={tasks}>
@@ -1013,6 +1032,8 @@ function AppContent() {
                 />
               }
             />
+            <Route path="tickets" element={ticketListPage} />
+            <Route path="workflow" element={<WorkflowPage tasks={tasks} docs={docs} projectName={projectName} />} />
             <Route path="tasks" element={taskListPage} />
             <Route path="tasks/:id" element={taskListPage} />
             <Route path="tasks/:id/:title" element={taskListPage} />

@@ -4,6 +4,7 @@ import { apiClient, type ReorderTaskPayload } from '../lib/api';
 import { buildLanes, DEFAULT_LANE_KEY, groupTasksByLaneAndStatus, type LaneMode, sortTasksForStatus } from '../lib/lanes';
 import { collectAvailableLabels, labelsToLower } from '../../utils/label-filter';
 import { collectArchivedMilestoneKeys, milestoneKey } from '../utils/milestones';
+import { rollupStatus } from '../utils/ticket-rollup';
 import { getTerminalStatus } from '../../utils/terminal-status';
 import { getPriorityOptions, normalizePriorityValue } from '../../utils/priority-config';
 import { getProjectValues, matchesProjectFilter } from '../../utils/project-config';
@@ -267,9 +268,33 @@ const Board: React.FC<BoardProps> = ({
     filterType !== '' ||
     filterProject !== '';
 
+  // The board shows tickets (top-level tasks) only; subtasks surface inside their parent's card.
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const task of tasks) {
+      if (task.parentTaskId) {
+        const list = map.get(task.parentTaskId) ?? [];
+        list.push(task);
+        map.set(task.parentTaskId, list);
+      }
+    }
+    return map;
+  }, [tasks]);
+
+  const ticketTasks = useMemo(() => tasks.filter(task => !task.parentTaskId), [tasks]);
+
+  // A ticket with subtasks takes its status from them (Jira-epic rollup); childless tickets keep their own.
+  const rolledTicketTasks = useMemo(
+    () => ticketTasks.map(ticket => {
+      const kids = childrenByParent.get(ticket.id);
+      return kids && kids.length > 0 ? { ...ticket, status: rollupStatus(kids) } : ticket;
+    }),
+    [ticketTasks, childrenByParent]
+  );
+
   // Filter tasks by milestone when milestoneFilter is set, then apply assignee/label/priority filters
   const filteredTasks = useMemo(() => {
-    let result = tasks;
+    let result = rolledTicketTasks;
     if (milestoneFilter) {
       result = result.filter(task => canonicalizeMilestone(task.milestone) === canonicalMilestoneFilter);
     }
@@ -293,7 +318,7 @@ const Board: React.FC<BoardProps> = ({
       result = result.filter(task => matchesProjectFilter(task.project, filterProject));
     }
     return result;
-  }, [tasks, milestoneFilter, canonicalMilestoneFilter, milestoneAliasToCanonical, filterAssignee, normalizedFilterLabels, filterPriority, filterType, filterProject]);
+  }, [rolledTicketTasks, milestoneFilter, canonicalMilestoneFilter, milestoneAliasToCanonical, filterAssignee, normalizedFilterLabels, filterPriority, filterType, filterProject]);
 
   // Handle highlighting a task (opening its edit popup)
   useEffect(() => {
@@ -471,14 +496,14 @@ const Board: React.FC<BoardProps> = ({
     });
   }, [tasks, archivedMilestoneIds, milestoneAliasToCanonical]);
 
-  // Use all tasks for lane grouping (for counts and visibility)
+  // Group tickets (top-level tasks) into lanes for counts and visibility; subtasks are shown inside cards.
   const tasksByLane = useMemo(
-    () => groupTasksByLaneAndStatus(laneMode, lanes, statuses, tasks, {
+    () => groupTasksByLaneAndStatus(laneMode, lanes, statuses, rolledTicketTasks, {
       archivedMilestoneIds,
       milestoneEntities,
       archivedMilestones,
     }),
-    [laneMode, lanes, statuses, tasks, archivedMilestoneIds, milestoneEntities, archivedMilestones]
+    [laneMode, lanes, statuses, rolledTicketTasks, archivedMilestoneIds, milestoneEntities, archivedMilestones]
   );
 
   // Separate grouping for filtered display in columns
@@ -886,6 +911,7 @@ const Board: React.FC<BoardProps> = ({
                           <TaskColumn
                             title={status}
                             tasks={getTasksForLane(lane.key, status)}
+                            childrenByParent={childrenByParent}
                             onTaskUpdate={handleTaskUpdate}
                             onEditTask={onEditTask}
                             onTaskReorder={handleTaskReorder}
@@ -919,6 +945,7 @@ const Board: React.FC<BoardProps> = ({
                 <TaskColumn
                   title={status}
                   tasks={getTasksForLane(DEFAULT_LANE_KEY, status)}
+                  childrenByParent={childrenByParent}
                   onTaskUpdate={handleTaskUpdate}
                   onEditTask={onEditTask}
                   onTaskReorder={handleTaskReorder}

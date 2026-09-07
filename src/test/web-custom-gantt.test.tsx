@@ -35,15 +35,15 @@ describe("CustomGantt", () => {
 		expect(apiRow).toBeGreaterThan(schemaRow);
 	});
 
-	it("shows duration and percent text per task", () => {
+	it("shows estimated hours and percent text per task", () => {
 		const html = render([task("TASK-1", { title: "Schema", labels: ["sp:3"], status: "In Review" })]);
-		expect(html).toContain("3 days");
+		expect(html).toContain("3h");
 		expect(html).toContain("75%");
 	});
 
-	it("uses singular day text for a 1-day task", () => {
+	it("shows a 1h estimate for a single-point task", () => {
 		const html = render([task("TASK-1", { title: "Solo", labels: ["sp:1"] })]);
-		expect(html).toContain("1 day<");
+		expect(html).toContain("1h");
 	});
 
 	it("renders a bar per task", () => {
@@ -75,22 +75,5 @@ describe("CustomGantt", () => {
 		expect(fillColorFor("TASK-3")).toBe("rgba(59, 130, 246, 0.55)");
 		expect(fillColorFor("TASK-4")).toBe("rgba(239, 68, 68, 0.55)");
 		expect(fillColorFor("TASK-5")).toBe("rgba(203, 213, 225, 0.55)");
-	});
-
-	it("shows an avatar with initials for an assigned task and none for an unassigned one", () => {
-		const html = render([
-			task("TASK-1", { title: "Assigned", assignee: ["Jane Doe"] }),
-			task("TASK-2", { title: "Unassigned", dependencies: ["TASK-1"] }),
-		]);
-		const rowTask1 = html.slice(html.indexOf('data-testid="gantt-bar-TASK-1"'), html.indexOf('data-testid="gantt-bar-TASK-2"'));
-		const rowTask2 = html.slice(html.indexOf('data-testid="gantt-bar-TASK-2"'));
-		expect(rowTask1).toContain('data-testid="gantt-avatar"');
-		expect(rowTask1).toContain("JD");
-		expect(rowTask2).not.toContain('data-testid="gantt-avatar"');
-	});
-
-	it("collapses multiple assignees to a first-initial + count avatar", () => {
-		const html = render([task("TASK-1", { title: "Team task", assignee: ["Jane Doe", "Bob Smith"] })]);
-		expect(html).toContain(">J+1<");
 	});
 });

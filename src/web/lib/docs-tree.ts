@@ -28,6 +28,15 @@ export interface DocsTreeResult {
 
 const byTitle = (a: Document, b: Document) => a.title.localeCompare(b.title);
 
+/** Numeric order by the document id ("doc-N"), so a flat doc list reads in creation order rather than
+ * alphabetically. Falls back to title when an id has no numeric part. */
+const byId = (a: Document, b: Document) => {
+	const na = Number(a.id.match(/(\d+)/)?.[1] ?? Number.NaN);
+	const nb = Number(b.id.match(/(\d+)/)?.[1] ?? Number.NaN);
+	if (Number.isNaN(na) || Number.isNaN(nb)) return byTitle(a, b);
+	return na - nb;
+};
+
 /**
  * Builds a hierarchical tree structure from a flat list of documents.
  *
@@ -74,7 +83,7 @@ export function buildDocsTree(docs: Document[]): DocsTreeResult {
 		}
 	}
 
-	ungroupedDocs.sort(byTitle);
+	ungroupedDocs.sort(byId);
 	sortTree(tree);
 	return { tree, ungroupedDocs };
 }

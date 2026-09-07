@@ -252,10 +252,10 @@ const Statistics: React.FC<StatisticsProps> = ({
 		<div className="max-w-7xl mx-auto p-6 space-y-8">
 			{/* Header */}
 			<div className="text-center">
-				<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+				<h1 className="text-3xl font-bold text-white mb-2">
 					{projectName ? `${projectName} Statistics` : 'Project Statistics'}
 				</h1>
-				<p className="text-gray-600 dark:text-gray-400">
+				<p className="text-white/80">
 					Overview of your project's task metrics and activity
 				</p>
 			</div>
