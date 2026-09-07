@@ -231,7 +231,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   return (
-    <div className="relative">
+    <div className="relative mb-2">
       {/* Branch tooltip when trying to drag cross-branch task */}
       {showBranchTooltip && isFromOtherBranch && (
         <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-50 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-md shadow-lg whitespace-nowrap">
@@ -246,7 +246,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       )}
 
       <div
-        className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl ticket-notch p-3 mb-2 transition-all duration-200 ${
+        className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl ticket-notch p-3 transition-all duration-200 ${
           isFromOtherBranch
             ? 'opacity-75 cursor-not-allowed border-dashed'
             : 'cursor-pointer hover:border-gray-300 dark:hover:border-gray-600'
@@ -458,6 +458,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
       </div>
+      <span className="ticket-notch-shadow-l" aria-hidden="true" />
+      <span className="ticket-notch-shadow-r" aria-hidden="true" />
     </div>
   );
 };
