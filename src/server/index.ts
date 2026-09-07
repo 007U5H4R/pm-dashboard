@@ -230,6 +230,26 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 /** Keys are relative to `/api` ("/tasks", "/tasks/:id"); the dashboard mounts them under a project prefix. */
 export type ApiRouteTable = Record<string, Partial<Record<HttpMethod, ApiRouteHandler>>>;
 
+const MUTATING_METHODS = new Set(["POST", "PUT", "DELETE", "PATCH"]);
+
+/**
+ * Localhost CSRF guard. `Sec-Fetch-Site` is a forbidden header set by the browser that page JS cannot spoof:
+ * `cross-site` (or `same-site`) means another origin initiated the request — a CSRF attempt, blocked;
+ * `same-origin` is the SPA and `none` is direct navigation — allowed; absent means a non-browser client
+ * (CLI, curl, tests) — allowed. Only state-changing methods are checked; GET/HEAD/OPTIONS pass through.
+ */
+function rejectCrossSite(req: Request): Response | null {
+	if (!MUTATING_METHODS.has(req.method)) return null;
+	const site = req.headers.get("sec-fetch-site");
+	if (site === null || site === "same-origin" || site === "none") return null;
+	return Response.json({ error: "Cross-site request blocked" }, { status: 403 });
+}
+
+const withCsrfGuard =
+	(handler: ApiRouteHandler): ApiRouteHandler =>
+	async (req) =>
+		rejectCrossSite(req) ?? (await handler(req));
+
 /** SPA paths served by the embedded index.html (client-side routes). */
 export const SPA_PATHS = [
 	"/",
@@ -2079,16 +2099,17 @@ export class DashboardServer {
 			const scoped: Partial<Record<HttpMethod, ApiRouteHandler>> = {};
 			const legacy: Partial<Record<HttpMethod, ApiRouteHandler>> = {};
 			for (const method of Object.keys(methods) as HttpMethod[]) {
-				scoped[method] = async (req) => {
+				// Single choke point: every scoped and legacy API handler passes the CSRF guard before dispatch
+				scoped[method] = withCsrfGuard(async (req) => {
 					const target = await this.resolve(req.params.pid);
 					if (target instanceof Response) return target;
 					const handler = target.apiRoutes[key]?.[method];
 					return handler ? handler(req) : new Response("Not Found", { status: 404 });
-				};
-				legacy[method] = async (req) => {
+				});
+				legacy[method] = withCsrfGuard(async (req) => {
 					const handler = this.registry.getDefault().apiRoutes[key]?.[method];
 					return handler ? handler(req) : new Response("Not Found", { status: 404 });
-				};
+				});
 			}
 			routes[`/api/p/:pid${key}`] = scoped;
 			routes[`/api${key}`] = legacy;
