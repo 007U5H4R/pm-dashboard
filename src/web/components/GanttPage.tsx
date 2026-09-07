@@ -83,7 +83,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
         </ul>
       </div>
       {(unestimated > 0 || schedule.warnings.length > 0) && (
-        <div className="mb-3 text-xs text-amber-200 space-y-1">
+        <div className="mb-3 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-xs text-amber-800 dark:text-amber-200 space-y-1">
           {unestimated > 0 && (
             <p>
               {`${unestimated} ticket${unestimated === 1 ? '' : 's'} without an estimate (shown as "no est.", scheduled as 1 pt).`}

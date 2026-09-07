@@ -365,7 +365,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 
 			{/* Progress Bar */}
 			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-				<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h3>
+				<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h2>
 				<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-circle h-4 mb-2">
 					<div 
 						className="bg-gradient-to-r from-blue-500 to-green-500 h-4 rounded-circle transition-all duration-300"
@@ -382,7 +382,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Status Distribution */}
 				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h3>
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h2>
 					<div className="space-y-4">
 						{Object.entries(statistics.statusCounts)
 							.filter(([, count]) => count > 0)
@@ -415,7 +415,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 
 				{/* Priority Distribution */}
 				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h3>
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h2>
 					<div className="space-y-4">
 						{priorityBreakdown.map(({ key, priority, label, count }) => (
 							<div key={key} className="flex items-center justify-between">
@@ -449,7 +449,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Recently Created */}
 				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h3>
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h2>
 					{statistics.recentActivity.created.length > 0 ? (
 						<div className="space-y-3">
 							{statistics.recentActivity.created.map((task) => (
@@ -467,7 +467,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 
 				{/* Recently Updated */}
 				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h3>
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h2>
 					{statistics.recentActivity.updated.length > 0 ? (
 						<div className="space-y-3">
 							{statistics.recentActivity.updated.map((task) => (
@@ -487,7 +487,7 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Project Health - Completely redesigned as a summary row */}
 			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
 				<div className="flex items-center justify-between">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Project Health</h3>
+					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Project Health</h2>
 					
 					<div className="flex items-center space-x-4 text-sm">
 						<div className="flex items-center space-x-1">
@@ -525,9 +525,9 @@ const Statistics: React.FC<StatisticsProps> = ({
 							{/* Stale Tasks */}
 							{statistics.projectHealth.staleTasks.length > 0 && (
 								<div>
-									<h4 className="font-medium text-yellow-700 dark:text-yellow-400 mb-3 text-sm">
+									<h3 className="font-medium text-yellow-700 dark:text-yellow-400 mb-3 text-sm">
 										Stale Tasks (&gt;30 days)
-									</h4>
+									</h3>
 									<p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
 										Tasks that haven't been updated in over 30 days and may need attention or archiving
 									</p>
@@ -552,9 +552,9 @@ const Statistics: React.FC<StatisticsProps> = ({
 							{/* Blocked Tasks */}
 							{statistics.projectHealth.blockedTasks.length > 0 && (
 								<div>
-									<h4 className="font-medium text-red-700 dark:text-red-400 mb-3 text-sm">
+									<h3 className="font-medium text-red-700 dark:text-red-400 mb-3 text-sm">
 										Blocked Tasks
-									</h4>
+									</h3>
 									<p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
 										Tasks that cannot progress because their dependencies are not yet completed
 									</p>

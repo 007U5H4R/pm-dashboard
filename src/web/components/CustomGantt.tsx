@@ -250,7 +250,7 @@ export default function CustomGantt({ tasks, projectName, percentById }: CustomG
               {ticks.slice(0, -1).map(tick => (
                 <div
                   key={tick.hour}
-                  className="shrink-0 flex items-center justify-start pl-1 text-[10px] font-medium text-gray-400 dark:text-gray-500 border-l border-gray-100 dark:border-gray-700"
+                  className="shrink-0 flex items-center justify-start pl-1 text-[10px] font-medium text-gray-500 dark:text-gray-500 border-l border-gray-100 dark:border-gray-700"
                   style={{ width: HOUR_WIDTH }}
                 >
                   {tick.label}

@@ -300,7 +300,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Header row with task metadata */}
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 font-mono transition-colors duration-200">{task.id}</span>
+            <span className="shrink-0 text-xs text-gray-500 dark:text-gray-500 font-mono transition-colors duration-200">{task.id}</span>
             <TaskTypeBadge type={task.type} availableTypes={availableTypes} className="min-w-0" />
             <ProjectBadge project={task.project} availableProjects={availableProjects} className="min-w-0" />
           </div>
@@ -318,7 +318,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <h4
           className={`font-semibold text-sm line-clamp-2 cursor-default transition-colors duration-200 ${
             isFromOtherBranch
-              ? 'text-gray-400 dark:text-gray-500'
+              ? 'text-gray-500 dark:text-gray-500'
               : 'text-gray-900 dark:text-gray-100'
           }`}
           title={task.title}
@@ -341,7 +341,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               </span>
             ))}
             {displayLabels.length > 3 && (
-              <span className="inline-block px-1.5 py-0.5 text-[10px] text-gray-400 dark:text-gray-500">
+              <span className="inline-block px-1.5 py-0.5 text-[10px] text-gray-500 dark:text-gray-500">
                 +{displayLabels.length - 3}
               </span>
             )}
@@ -411,7 +411,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                       }`}
                     />
                     <span className="shrink-0 font-mono text-gray-500 dark:text-gray-400">{child.id}</span>
-                    <span className="ml-auto shrink-0 text-[10px] font-medium text-gray-400 dark:text-gray-500">{child.status}</span>
+                    <span className="ml-auto shrink-0 text-[10px] font-medium text-gray-500 dark:text-gray-500">{child.status}</span>
                   </li>
                 ))}
               </ul>
@@ -438,7 +438,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         )}
 
         {/* Footer with date */}
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-gray-400 dark:text-gray-500 mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-gray-500 dark:text-gray-500 mt-2 pt-1.5 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
           <span>{formatRelativeDate(task.createdDate)}</span>
           {task.dueDate && <span>Due: <StoredDate value={task.dueDate} dateFormat={dateFormat} /></span>}
           {task.assignee.length > 0 && !modelAvatar && (

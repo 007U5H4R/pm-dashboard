@@ -519,7 +519,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 							)}
 						</div>
 						{isEmpty ? (
-							<span className="text-sm text-gray-400 dark:text-gray-500">
+							<span className="text-sm text-gray-500 dark:text-gray-500">
 								{isDragging ? "Drop here" : "No tasks"}
 							</span>
 						) : (
@@ -745,7 +745,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 									</div>
 
 									{/* Hint */}
-									<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+									<p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
 										Drag tasks to a milestone below to assign them
 									</p>
 								</>
@@ -775,7 +775,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 				<div className="flex flex-wrap items-center gap-4">
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Milestones</h1>
 					<div className="relative w-full min-w-[240px] max-w-[420px]">
-						<span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500">
+						<span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-500">
 							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
 							</svg>
@@ -797,7 +797,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 								type="button"
 								onClick={() => setSearchQuery("")}
 								aria-label="Clear milestone search"
-								className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+								className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
 							>
 								<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -865,7 +865,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 					{isSearchActive ? (
 						<div className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
 							<span>Completed milestones</span>
-							<span className="text-xs text-gray-400 dark:text-gray-500">({completedMilestones.length})</span>
+							<span className="text-xs text-gray-500 dark:text-gray-500">({completedMilestones.length})</span>
 						</div>
 					) : (
 						<button
@@ -874,7 +874,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 							className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
 						>
 							<span>Completed milestones</span>
-							<span className="text-xs text-gray-400 dark:text-gray-500">({completedMilestones.length})</span>
+							<span className="text-xs text-gray-500 dark:text-gray-500">({completedMilestones.length})</span>
 							<svg
 								className={`w-4 h-4 transition-transform ${showCompleted ? "rotate-180" : ""}`}
 								fill="none"

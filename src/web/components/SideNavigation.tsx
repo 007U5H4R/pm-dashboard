@@ -240,7 +240,7 @@ const DocLink = ({ doc, depth = 0 }: { doc: Document; depth?: number }) => (
 		}
 		style={depth > 0 ? { paddingLeft: `${12 + depth * 12}px` } : undefined}
 	>
-		<span className="text-gray-400 dark:text-gray-500"><Icons.DocumentPage /></span>
+		<span className="text-gray-500 dark:text-gray-500"><Icons.DocumentPage /></span>
 		<span className="truncate">{doc.title}</span>
 	</NavLink>
 );
@@ -502,7 +502,7 @@ const SideNavigation = memo(function SideNavigation({
 				{/* Collapse Toggle Button - Always positioned on the border */}
 				<button
 					onClick={toggleCollapse}
-					className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center w-6 h-6 bg-white/80 dark:bg-gray-800/70 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-circle shadow-sm hover:shadow-md text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200"
+					className="absolute -right-3 top-1/2 transform -translate-y-1/2 z-10 flex items-center justify-center w-6 h-6 bg-white/80 dark:bg-gray-800/70 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-circle shadow-sm hover:shadow-md text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-200"
 					aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 					title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
 				>
@@ -512,7 +512,7 @@ const SideNavigation = memo(function SideNavigation({
 				{!isCollapsed ? (
 					<div className="flex items-center w-full">
 						<div className="relative flex-1">
-							<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
+							<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-500">
 								<Icons.Search />
 							</div>
 							<input
@@ -526,7 +526,7 @@ const SideNavigation = memo(function SideNavigation({
 								{searchQuery && (
 									<button
 										onClick={() => setSearchQuery('')}
-										className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+										className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
 									>
 										<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -603,7 +603,7 @@ const SideNavigation = memo(function SideNavigation({
 										</div>
 									</div>
 									{result.score !== null && (
-										<div className="text-xs text-gray-400 dark:text-gray-500">
+										<div className="text-xs text-gray-500 dark:text-gray-500">
 											{`${Math.round((1 - result.score) * 100)}%`}
 										</div>
 									)}
@@ -662,7 +662,7 @@ const SideNavigation = memo(function SideNavigation({
 
 				{!isCollapsed && (
 					<div className="px-4 space-y-1">
-						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">PM Tools</p>
+						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">PM Tools</p>
 
 						{/* Board Navigation */}
 						<NavLink
@@ -724,7 +724,7 @@ const SideNavigation = memo(function SideNavigation({
 							<span className="ml-3 text-sm font-medium">Statistics</span>
 						</NavLink>
 
-						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Details</p>
+						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">Project Details</p>
 
 						{/* Tasks Navigation */}
 						<NavLink
@@ -800,7 +800,7 @@ const SideNavigation = memo(function SideNavigation({
 									<div className="flex items-center space-x-3">
 										<button
 											onClick={() => setIsDocsCollapsed(!isDocsCollapsed)}
-											className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
+											className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
 											title={isDocsCollapsed ? "Expand documents" : "Collapse documents"}
 										>
 											{isDocsCollapsed ? <Icons.ChevronRight /> : <Icons.ChevronDown />}
@@ -812,7 +812,7 @@ const SideNavigation = memo(function SideNavigation({
 								</div>
 									<button
 										onClick={handleCreateDocument}
-										className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200"
+										className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200"
 										title="Create new document"
 									>
 										<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -865,7 +865,7 @@ const SideNavigation = memo(function SideNavigation({
 									<div className="flex items-center space-x-3">
 										<button
 											onClick={() => setIsDecisionsCollapsed(!isDecisionsCollapsed)}
-											className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
+											className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
 											title={isDecisionsCollapsed ? "Expand decisions" : "Collapse decisions"}
 										>
 											{isDecisionsCollapsed ? <Icons.ChevronRight /> : <Icons.ChevronDown />}
@@ -912,7 +912,7 @@ const SideNavigation = memo(function SideNavigation({
 													}`
 												}
 											>
-												<span className="text-gray-400 dark:text-gray-500"><Icons.DecisionPage /></span>
+												<span className="text-gray-500 dark:text-gray-500"><Icons.DecisionPage /></span>
 												<span className="truncate">{decision.title}</span>
 											</NavLink>
 										))
