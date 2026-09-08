@@ -289,10 +289,10 @@ function htmlDocumentTitle(html: string, fallback: string): string {
 }
 
 /**
- * Build a Document for a non-markdown artifact (HTML/PDF/DOCX). These files carry no frontmatter, so
- * the id is derived from the path, the title from the file's own <title>/<h1> (HTML) or filename, and
- * the dates from the filesystem mtime. HTML content is inlined as rawContent so the viewer can render
- * it directly; binary formats (PDF/DOCX) carry no rawContent and are streamed via the raw endpoint.
+ * Build a Document for a non-markdown artifact (HTML/PDF). These files carry no frontmatter, so the
+ * id is derived from the path, the title from the file's own <title>/<h1> (HTML) or filename, and the
+ * dates from the filesystem mtime. HTML content is inlined as rawContent so the viewer can render it
+ * directly; binary formats (PDF) carry no rawContent and are streamed via the raw endpoint.
  */
 async function buildArtifactDocument(filepath: string, relativePath: string, ext: string): Promise<Document> {
 	const filename = basename(relativePath, extname(relativePath));
@@ -1653,10 +1653,10 @@ export class FileSystem {
 	async listDocuments(unreadable?: string[]): Promise<Document[]> {
 		try {
 			const docsDir = await this.getDocsDir();
-			// Recursively include markdown plus the renderable artifact formats (HTML/PDF/DOCX),
+			// Recursively include markdown plus the offline-renderable artifact formats (HTML/PDF),
 			// excluding README.md variants. Markdown is parsed from frontmatter; the other formats
 			// have no frontmatter, so their Document metadata is synthesized (see buildArtifactDocument).
-			const glob = new Bun.Glob("**/*.{md,html,htm,pdf,docx}");
+			const glob = new Bun.Glob("**/*.{md,html,htm,pdf}");
 			const docFiles = await Array.fromAsync(glob.scan({ cwd: docsDir, followSymlinks: true }));
 			const docs: Document[] = [];
 			for (const file of docFiles) {

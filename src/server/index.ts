@@ -1303,11 +1303,9 @@ export class BacklogServer {
 			const contentType =
 				ext === ".pdf"
 					? "application/pdf"
-					: ext === ".docx"
-						? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-						: ext === ".html" || ext === ".htm"
-							? "text/html; charset=utf-8"
-							: "application/octet-stream";
+					: ext === ".html" || ext === ".htm"
+						? "text/html; charset=utf-8"
+						: "application/octet-stream";
 			return new Response(file, {
 				headers: { "Content-Type": contentType, "Cache-Control": "no-store" },
 			});

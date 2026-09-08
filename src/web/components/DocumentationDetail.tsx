@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef, memo, useCallback} from 'react';
+import {useState, useEffect, memo, useCallback} from 'react';
 import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
 import {apiClient, isAmbiguousIdConflict} from '../lib/api';
 import MDEditor from '@uiw/react-md-editor';
@@ -59,11 +59,10 @@ const MarkdownEditor = memo(function MarkdownEditor({
 });
 
 // Renderable artifact formats beyond Markdown. Extension is read from the document's path.
-const artifactFormat = (path?: string): 'html' | 'pdf' | 'docx' | null => {
+const artifactFormat = (path?: string): 'html' | 'pdf' | null => {
     const ext = (path ?? '').toLowerCase().split('.').pop() ?? '';
     if (ext === 'html' || ext === 'htm') return 'html';
     if (ext === 'pdf') return 'pdf';
-    if (ext === 'docx') return 'docx';
     return null;
 };
 
@@ -89,89 +88,6 @@ const PdfArtifactView = memo(function PdfArtifactView({ url, title }: { url: str
             src={url}
             className="flex-1 w-full min-h-[70vh] rounded-lg border border-gray-200 dark:border-gray-700 bg-white"
         />
-    );
-});
-
-// docx-preview (and its jszip dependency) can't be bundled into this app's browser build — jszip's
-// Node entry pulls readable-stream/`stream`, which the web bundler rejects. So the renderer is loaded
-// from a CDN the first time a .docx is opened. This app is served locally (no artifact CSP), and DOCX
-// is the only path that needs the network; every other artifact type renders fully offline.
-type DocxPreview = { renderAsync: (data: Blob, container: HTMLElement, style?: HTMLElement, opts?: Record<string, unknown>) => Promise<unknown> };
-declare global {
-    interface Window { docx?: DocxPreview; JSZip?: unknown }
-}
-let docxPreviewPromise: Promise<DocxPreview> | null = null;
-function loadCdnScript(src: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const doc = window.document;
-        const existing = doc.querySelector<HTMLScriptElement & { _loaded?: boolean }>(`script[data-cdn="${src}"]`);
-        if (existing) {
-            if (existing._loaded) return resolve();
-            existing.addEventListener('load', () => resolve());
-            existing.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
-            return;
-        }
-        const el = doc.createElement('script') as HTMLScriptElement & { _loaded?: boolean };
-        el.src = src;
-        el.async = true;
-        el.dataset.cdn = src;
-        el.addEventListener('load', () => { el._loaded = true; resolve(); });
-        el.addEventListener('error', () => reject(new Error(`Failed to load ${src}`)));
-        doc.head.appendChild(el);
-    });
-}
-function loadDocxPreview(): Promise<DocxPreview> {
-    if (window.docx) return Promise.resolve(window.docx);
-    if (!docxPreviewPromise) {
-        docxPreviewPromise = (async () => {
-            // jszip first: docx-preview's UMD build reads it from the global scope.
-            await loadCdnScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
-            await loadCdnScript('https://cdn.jsdelivr.net/npm/docx-preview@0.4.0/dist/docx-preview.min.js');
-            if (!window.docx) throw new Error('docx-preview failed to initialize');
-            return window.docx;
-        })().catch((err) => {
-            docxPreviewPromise = null; // allow a retry on the next mount
-            throw err;
-        });
-    }
-    return docxPreviewPromise;
-}
-
-// DOCX, converted to HTML in the browser by docx-preview (fetched as a blob from the raw endpoint).
-const DocxArtifactView = memo(function DocxArtifactView({ url }: { url: string }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isRendering, setIsRendering] = useState(true);
-
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            setIsRendering(true);
-            setError(null);
-            try {
-                const [docx, response] = await Promise.all([loadDocxPreview(), fetch(url)]);
-                if (!response.ok) throw new Error(`Failed to load document (${response.status})`);
-                const blob = await response.blob();
-                if (cancelled || !containerRef.current) return;
-                containerRef.current.innerHTML = '';
-                await docx.renderAsync(blob, containerRef.current, undefined, { inWrapper: true, className: 'docx' });
-            } catch (err) {
-                if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to render document');
-            } finally {
-                if (!cancelled) setIsRendering(false);
-            }
-        })();
-        return () => { cancelled = true; };
-    }, [url]);
-
-    if (error) {
-        return <p className="p-6 text-sm text-red-600 dark:text-red-400">Could not display this document: {error}</p>;
-    }
-    return (
-        <div className="flex-1 w-full min-h-[70vh] overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 p-4">
-            {isRendering && <p className="text-sm text-gray-500 dark:text-gray-400">Rendering document…</p>}
-            <div ref={containerRef} />
-        </div>
     );
 });
 
@@ -539,9 +455,6 @@ export default function DocumentationDetail({docs, onRefreshData, dateFormat}: D
                             }
                             if (format === 'pdf') {
                                 return <PdfArtifactView url={document ? apiClient.documentRawUrl(document.id) : ''} title={docTitle} />;
-                            }
-                            if (format === 'docx') {
-                                return <DocxArtifactView url={document ? apiClient.documentRawUrl(document.id) : ''} />;
                             }
                             return (
                                 <MarkdownEditor
