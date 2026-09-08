@@ -1,5 +1,5 @@
 import net from "node:net";
-import { dirname, isAbsolute, join } from "node:path";
+import { dirname, extname, isAbsolute, join, resolve, sep } from "node:path";
 import type { Server, ServerWebSocket } from "bun";
 import { DEFAULT_STATUSES } from "../constants/index.ts";
 import { Core } from "../core/backlog.ts";
@@ -349,6 +349,7 @@ export class BacklogServer {
 				POST: async (req) => await this.handleCreateDoc(req),
 			},
 			"/doc/:id": { GET: async (req) => await this.handleGetDoc(req.params.id ?? "") },
+			"/doc/:id/raw": { GET: async (req) => await this.handleGetDocRaw(req.params.id ?? "") },
 			"/docs/:id": {
 				GET: async (req) => await this.handleGetDoc(req.params.id ?? ""),
 				PUT: async (req) => await this.handleUpdateDoc(req, req.params.id ?? ""),
@@ -1276,6 +1277,46 @@ export class BacklogServer {
 			}
 			console.error("Error loading document:", error);
 			return Response.json({ error: "Document not found" }, { status: 404 });
+		}
+	}
+
+	// Streams a document's raw bytes with the correct content-type, so binary/rich artifacts
+	// (PDF, DOCX) and standalone HTML can be rendered by the browser or a converter in the client.
+	private async handleGetDocRaw(docId: string): Promise<Response> {
+		try {
+			const doc = await this.core.getDocument(docId);
+			if (!doc?.path) {
+				return new Response("Not Found", { status: 404 });
+			}
+			const docsDir = this.core.filesystem.docsDir;
+			const base = resolve(docsDir);
+			const resolved = resolve(base, ...doc.path.split("/"));
+			// Path-traversal guard: the resolved file must stay inside the docs directory.
+			if (resolved !== base && !resolved.startsWith(base + sep)) {
+				return new Response("Forbidden", { status: 403 });
+			}
+			const file = Bun.file(resolved);
+			if (!(await file.exists())) {
+				return new Response("Not Found", { status: 404 });
+			}
+			const ext = extname(resolved).toLowerCase();
+			const contentType =
+				ext === ".pdf"
+					? "application/pdf"
+					: ext === ".docx"
+						? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+						: ext === ".html" || ext === ".htm"
+							? "text/html; charset=utf-8"
+							: "application/octet-stream";
+			return new Response(file, {
+				headers: { "Content-Type": contentType, "Cache-Control": "no-store" },
+			});
+		} catch (error) {
+			if (isAmbiguousIdError(error)) {
+				return Response.json({ error: error.message }, { status: 409 });
+			}
+			console.error("Error loading raw document:", error);
+			return new Response("Not Found", { status: 404 });
 		}
 	}
 

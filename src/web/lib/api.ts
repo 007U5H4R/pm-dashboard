@@ -543,6 +543,11 @@ export class ApiClient {
 		return response.json();
 	}
 
+	/** URL that streams a document's raw bytes (used for PDF/DOCX/HTML artifact rendering). */
+	documentRawUrl(id: string): string {
+		return `${API_BASE}/doc/${encodeURIComponent(id)}/raw`;
+	}
+
 	async updateDoc(filename: string, content: string, title?: string, path?: string | null): Promise<Document> {
 		const payload: Record<string, unknown> = { content };
 		if (typeof title === "string") {

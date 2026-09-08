@@ -1,5 +1,5 @@
 import { mkdir, rename, stat, unlink } from "node:fs/promises";
-import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, resolve } from "node:path";
 import lockfile from "proper-lockfile";
 import { DEFAULT_DIRECTORIES, DEFAULT_FILES, DEFAULT_STATUSES, FALLBACK_STATUS } from "../constants/index.ts";
 import { parseFrontmatter } from "../markdown/frontmatter.ts";
@@ -260,6 +260,56 @@ function createLockError(message: string, cause?: unknown): Error {
 
 function taskLockError(message: string, cause?: unknown): Error {
 	return lockError(TASK_LOCK_ERROR_NAME, TASK_LOCK_ERROR_CODE, message, cause);
+}
+
+/**
+ * Slugify a docs-relative path into a stable, URL-safe document id body. The `doc-` prefix keeps it
+ * inside the document id namespace; the full path (minus extension) avoids collisions between files
+ * of the same name in different folders. e.g. "specs/Solution PRD.html" -> "doc-specs-solution-prd".
+ */
+function artifactDocumentId(relativePath: string): string {
+	const withoutExt = relativePath.replace(/\.[^./]+$/, "");
+	const slug = withoutExt
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+	return `doc-${slug || "artifact"}`;
+}
+
+/** Pull a human title out of an HTML file: prefer <title>, then the first <h1>, else the filename. */
+function htmlDocumentTitle(html: string, fallback: string): string {
+	const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1];
+	if (title?.trim()) return title.trim();
+	const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1];
+	if (h1) {
+		const text = h1.replace(/<[^>]+>/g, "").trim();
+		if (text) return text;
+	}
+	return fallback;
+}
+
+/**
+ * Build a Document for a non-markdown artifact (HTML/PDF/DOCX). These files carry no frontmatter, so
+ * the id is derived from the path, the title from the file's own <title>/<h1> (HTML) or filename, and
+ * the dates from the filesystem mtime. HTML content is inlined as rawContent so the viewer can render
+ * it directly; binary formats (PDF/DOCX) carry no rawContent and are streamed via the raw endpoint.
+ */
+async function buildArtifactDocument(filepath: string, relativePath: string, ext: string): Promise<Document> {
+	const filename = basename(relativePath, extname(relativePath));
+	const bunFile = Bun.file(filepath);
+	const modifiedIso = bunFile.lastModified ? new Date(bunFile.lastModified).toISOString() : "";
+	const isHtml = ext === ".html" || ext === ".htm";
+	const rawContent = isHtml ? await bunFile.text() : "";
+	const title = isHtml ? htmlDocumentTitle(rawContent, filename) : filename;
+	return {
+		id: artifactDocumentId(relativePath),
+		title,
+		type: "other",
+		createdDate: modifiedIso,
+		updatedDate: modifiedIso || undefined,
+		rawContent,
+		path: relativePath,
+	};
 }
 
 /**
@@ -1603,8 +1653,10 @@ export class FileSystem {
 	async listDocuments(unreadable?: string[]): Promise<Document[]> {
 		try {
 			const docsDir = await this.getDocsDir();
-			// Recursively include all markdown files under docs, excluding README.md variants
-			const glob = new Bun.Glob("**/*.md");
+			// Recursively include markdown plus the renderable artifact formats (HTML/PDF/DOCX),
+			// excluding README.md variants. Markdown is parsed from frontmatter; the other formats
+			// have no frontmatter, so their Document metadata is synthesized (see buildArtifactDocument).
+			const glob = new Bun.Glob("**/*.{md,html,htm,pdf,docx}");
 			const docFiles = await Array.fromAsync(glob.scan({ cwd: docsDir, followSymlinks: true }));
 			const docs: Document[] = [];
 			for (const file of docFiles) {
@@ -1612,9 +1664,14 @@ export class FileSystem {
 				const base = relativePath.split("/").pop() || relativePath;
 				if (base.toLowerCase() === "readme.md") continue;
 				const filepath = join(docsDir, ...relativePath.split("/"));
+				const ext = extname(base).toLowerCase();
 				try {
-					const content = await Bun.file(filepath).text();
-					docs.push({ ...parseDocument(content), path: relativePath });
+					if (ext === ".md") {
+						const content = await Bun.file(filepath).text();
+						docs.push({ ...parseDocument(content), path: relativePath });
+					} else {
+						docs.push(await buildArtifactDocument(filepath, relativePath, ext));
+					}
 				} catch {
 					// One malformed file must not hide every other document from lookups.
 					unreadable?.push(relativePath);

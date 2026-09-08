@@ -806,19 +806,19 @@ const SideNavigation = memo(function SideNavigation({
 										<button
 											onClick={() => setIsDocsCollapsed(!isDocsCollapsed)}
 											className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
-											title={isDocsCollapsed ? "Expand documents" : "Collapse documents"}
+											title={isDocsCollapsed ? "Expand artifacts" : "Collapse artifacts"}
 										>
 											{isDocsCollapsed ? <Icons.ChevronRight /> : <Icons.ChevronDown />}
 									</button>
 									<span className="text-gray-500 dark:text-gray-400"><Icons.Document /></span>
 									<span className="text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 whitespace-nowrap">
-										Documents (<NavigationCount count={docs.length} isLoading={isLoading} error={error} label="document" />)
+										Artifacts (<NavigationCount count={docs.length} isLoading={isLoading} error={error} label="artifact" />)
 									</span>
 								</div>
 									<button
 										onClick={handleCreateDocument}
 										className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors duration-200"
-										title="Create new document"
+										title="Create new artifact"
 									>
 										<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -833,9 +833,9 @@ const SideNavigation = memo(function SideNavigation({
 									{isLoading ? (
 										<LoadingPhase className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400" />
 									) : error ? (
-										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">Documents unavailable</p>
+										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">Artifacts unavailable</p>
 									) : filteredDocs.length === 0 ? (
-										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No documents</p>
+										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No artifacts</p>
 									) : searchQuery.trim() ? (
 										// Search results stay flat, bypassing folder grouping
 										filteredDocs.map(doc => (
