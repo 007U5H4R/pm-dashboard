@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Board from './Board';
-import { type Milestone, type Task } from '../../types';
+import { type Document, type Milestone, type Task } from '../../types';
 import { resolvePriorityValue } from '../../utils/priority-config';
 import { resolveProjectValue } from '../../utils/project-config';
 import { resolveTaskTypeValue } from '../../utils/task-type-config';
@@ -11,6 +11,7 @@ interface BoardPageProps {
 	onEditTask: (task: Task) => void;
 	onNewTask: () => void;
 	tasks: Task[];
+	docs?: Document[];
 	onRefreshData?: () => Promise<void>;
 	onTasksUpdated?: (tasks: Task[], requestTask: Task) => void;
 	statuses: string[];
@@ -32,6 +33,7 @@ export default function BoardPage({
 	onEditTask,
 	onNewTask,
 	tasks,
+	docs,
 	onRefreshData,
 	onTasksUpdated,
 	statuses,
@@ -195,6 +197,7 @@ export default function BoardPage({
 				onNewTask={onNewTask}
 				highlightTaskId={highlightTaskId}
 				tasks={tasks}
+				docs={docs}
 				onRefreshData={onRefreshData}
 				onTasksUpdated={onTasksUpdated}
 				statuses={statuses}

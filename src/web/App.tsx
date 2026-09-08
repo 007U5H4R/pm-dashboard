@@ -942,6 +942,7 @@ function AppContent() {
       onEditTask={handleEditTask}
       onNewTask={handleNewTask}
       tasks={kanbanTasks}
+      docs={docs}
       onRefreshData={refreshData}
 	  onTasksUpdated={applyReorderedTasks}
       statuses={statuses}

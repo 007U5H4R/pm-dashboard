@@ -23,6 +23,8 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
+  /** Read-only cards (e.g. auto-derived workflow stages) can't be dragged or opened for editing. */
+  readOnly?: boolean;
   status?: string;
   laneId?: string;
   availableTypes?: string[];
@@ -76,6 +78,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onEdit,
   onDragStart,
   onDragEnd,
+  readOnly = false,
   status,
   laneId,
   availableTypes,
@@ -247,7 +250,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
       <div
         className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl ticket-notch p-3 transition-all duration-200 ${
-          isFromOtherBranch
+          readOnly
+            ? 'cursor-default'
+            : isFromOtherBranch
             ? 'opacity-75 cursor-not-allowed border-dashed'
             : 'cursor-pointer hover:border-gray-300 dark:hover:border-gray-600'
         } ${getPriorityClass(task.priority)} ${
@@ -258,13 +263,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
             : ''
         }`}
         aria-selected={isSelected}
-        draggable={!isFromOtherBranch}
-		role="button"
-		tabIndex={0}
-		aria-label={accessibleLabel}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onClick={(event) => {
+        draggable={!isFromOtherBranch && !readOnly}
+		role={readOnly ? undefined : 'button'}
+		tabIndex={readOnly ? undefined : 0}
+		aria-label={readOnly ? undefined : accessibleLabel}
+        onDragStart={readOnly ? undefined : handleDragStart}
+        onDragEnd={readOnly ? undefined : handleDragEnd}
+        onClick={readOnly ? undefined : (event) => {
           // Ctrl/Cmd and Shift belong to the board selection, so they must not open the editor.
           if (onSelect && !isFromOtherBranch && (event.ctrlKey || event.metaKey || event.shiftKey)) {
             event.preventDefault();
@@ -274,7 +279,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           }
           onEdit(task);
         }}
-		onKeyDown={(event) => {
+		onKeyDown={readOnly ? undefined : (event) => {
 			if (event.key === 'Enter' || event.key === ' ') {
 				event.preventDefault();
 				if (onSelect && !isFromOtherBranch && (event.ctrlKey || event.metaKey || event.shiftKey)) {

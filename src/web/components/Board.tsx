@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { type Milestone, type Task } from '../../types';
+import { type Document, type Milestone, type Task } from '../../types';
 import { apiClient, type ReorderTaskPayload } from '../lib/api';
 import { buildLanes, DEFAULT_LANE_KEY, groupTasksByLaneAndStatus, type LaneMode, sortTasksForStatus } from '../lib/lanes';
+import { computeWorkflowStages, WORKFLOW_STAGE_STATUSES } from '../lib/workflow-stages';
 import { collectAvailableLabels, labelsToLower } from '../../utils/label-filter';
 import { collectArchivedMilestoneKeys } from '../utils/milestones';
 import { rollupStatus } from '../utils/ticket-rollup';
@@ -21,6 +22,8 @@ interface BoardProps {
   onNewTask: () => void;
   highlightTaskId?: string | null;
   tasks: Task[];
+  /** Project documents — used to derive workflow-stage status in the Workflow board view. */
+  docs?: Document[];
   onRefreshData?: () => Promise<void>;
   onTasksUpdated?: (tasks: Task[], requestTask: Task) => void;
   statuses: string[];
@@ -53,11 +56,16 @@ const BOARD_FILTER_SELECT_CLASS =
 const BOARD_FILTER_BUTTON_CLASS =
   'h-10 py-2 px-3 text-sm border border-gray-200 dark:border-gray-700 rounded-lg whitespace-nowrap transition-colors duration-200 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/60';
 
+// Remembers the Execution/Workflow toggle across sessions (per browser).
+const BOARD_VIEW_STORAGE_KEY = 'backlog.board.view';
+type BoardView = 'execution' | 'workflow';
+
 const Board: React.FC<BoardProps> = ({
   onEditTask,
   onNewTask,
   highlightTaskId,
   tasks,
+  docs = [],
   onRefreshData,
   onTasksUpdated,
   statuses,
@@ -82,6 +90,33 @@ const Board: React.FC<BoardProps> = ({
   dateFormat,
 }) => {
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [boardView, setBoardView] = useState<BoardView>(() => {
+    try {
+      return window.localStorage.getItem(BOARD_VIEW_STORAGE_KEY) === 'workflow' ? 'workflow' : 'execution';
+    } catch {
+      return 'execution';
+    }
+  });
+  const changeBoardView = (view: BoardView) => {
+    setBoardView(view);
+    try {
+      window.localStorage.setItem(BOARD_VIEW_STORAGE_KEY, view);
+    } catch {
+      /* storage unavailable (private mode) — the choice just won't persist */
+    }
+  };
+  // Workflow view: the 10 build-workflow stages as read-only cards, grouped into their derived
+  // status column. Uses the same derivation as the Workflow Gantt page (shared helper).
+  const workflowStages = useMemo(() => computeWorkflowStages(tasks, docs), [tasks, docs]);
+  const workflowTasksByStatus = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    for (const status of WORKFLOW_STAGE_STATUSES) map.set(status, []);
+    for (const stage of workflowStages.stageTasks) {
+      const list = map.get(stage.status);
+      if (list) list.push(stage);
+    }
+    return map;
+  }, [workflowStages]);
   const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null);
   // True while a drag that moves the whole selection is in flight, so every selected card can
@@ -678,12 +713,14 @@ const Board: React.FC<BoardProps> = ({
       <div className="mb-6 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-200">Kanban Board</h2>
-          <button
-            className="inline-flex items-center px-4 py-2 bg-blue-500/90 dark:bg-blue-600/90 backdrop-blur-sm border border-white/20 text-white text-sm font-medium rounded-md shadow-lg shadow-blue-500/20 hover:bg-blue-600/90 dark:hover:bg-blue-700/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-            onClick={onNewTask}
-          >
-            + New Task
-          </button>
+          {boardView === 'execution' && (
+            <button
+              className="inline-flex items-center px-4 py-2 bg-blue-500/90 dark:bg-blue-600/90 backdrop-blur-sm border border-white/20 text-white text-sm font-medium rounded-md shadow-lg shadow-blue-500/20 hover:bg-blue-600/90 dark:hover:bg-blue-700/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+              onClick={onNewTask}
+            >
+              + New Task
+            </button>
+          )}
         </div>
         {selectedTaskIds.length > 0 && (
           <div
@@ -724,7 +761,31 @@ const Board: React.FC<BoardProps> = ({
           </div>
         )}
         <div className="flex flex-wrap items-center gap-3" role="toolbar" aria-label="Board view controls">
-            {onFiltersChange && (
+            {/* Execution / Workflow view toggle. Execution = the project's real tickets (default);
+                Workflow = the 10 build-workflow stages as read-only cards. */}
+            <div
+              className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0.5"
+              role="group"
+              aria-label="Board view"
+            >
+              {(['execution', 'workflow'] as const).map((view) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => changeBoardView(view)}
+                  aria-pressed={boardView === view}
+                  className={`h-9 px-3 text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 ${
+                    boardView === view
+                      ? 'bg-blue-500 text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/60'
+                  }`}
+                >
+                  {view === 'execution' ? 'Execution' : 'Workflow'}
+                </button>
+              ))}
+            </div>
+
+            {boardView === 'execution' && onFiltersChange && (
               <div className="flex flex-wrap items-center gap-3" aria-label="Board filters">
                 <select
                   aria-label="Filter board by assignee"
@@ -813,7 +874,24 @@ const Board: React.FC<BoardProps> = ({
           )}
         </div>
       ) : isLoading ? (
-        <BoardLoadingSkeleton message={loadingMessage} columnCount={statuses.length} />
+        <BoardLoadingSkeleton message={loadingMessage} columnCount={boardView === 'workflow' ? WORKFLOW_STAGE_STATUSES.length : statuses.length} />
+      ) : boardView === 'workflow' ? (
+        <div className="overflow-x-auto pb-2">
+          <div className="flex flex-row flex-nowrap gap-4 w-full">
+            {WORKFLOW_STAGE_STATUSES.map((status) => (
+              <div key={status} className="flex-1 min-w-[16rem]">
+                <TaskColumn
+                  title={status}
+                  tasks={workflowTasksByStatus.get(status) ?? []}
+                  onTaskUpdate={() => {}}
+                  onEditTask={() => {}}
+                  readOnly
+                  dateFormat={dateFormat}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : laneMode === 'milestone' ? (
         <div className="space-y-6">
           {visibleLanes.map((lane) => {

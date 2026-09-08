@@ -17,6 +17,8 @@ interface TaskColumnProps {
   onDragStart?: (context: { status: string; laneId?: string | null }) => void;
   onDragEnd?: () => void;
   onCleanup?: () => void;
+  /** Read-only columns (workflow-stage view) render non-draggable, non-editable cards. */
+  readOnly?: boolean;
   laneId?: string;
   targetMilestone?: string | null;
   priorityOrder?: string[];
@@ -72,6 +74,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
   onDragStart,
   onDragEnd,
   onCleanup,
+  readOnly = false,
   laneId,
   targetMilestone,
   priorityOrder,
@@ -364,6 +367,7 @@ const TaskColumn: React.FC<TaskColumnProps> = ({
               childTasks={childrenByParent?.get(task.id)}
               onUpdate={onTaskUpdate}
               onEdit={onEditTask}
+              readOnly={readOnly}
               isSelected={selectedTaskIds?.includes(task.id) ?? false}
               selectionCount={selectedTaskIds?.length ?? 0}
               isSelectionDragging={isSelectionDragging}
