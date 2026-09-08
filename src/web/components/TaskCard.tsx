@@ -375,16 +375,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </button>
             {children.length > 0 && (
               <div
-                className="mt-1.5 h-2 w-full overflow-hidden rounded-full border border-gray-200 bg-gray-100"
-                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
+                className="mt-1.5 h-2.5 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
+                style={{ borderRadius: '6px 5px 7px 5px / 5px 7px 5px 6px', filter: 'url(#hand-rough)' }}
               >
                 <div
-                  className="h-full rounded-full transition-all duration-300"
+                  className="h-full transition-all duration-300"
                   style={{
                     width: `${Math.round((doneChildren / children.length) * 100)}%`,
-                    backgroundColor: 'rgba(16,185,129,0.6)',
-                    backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 75%)',
-                    boxShadow: 'inset 0 0 0 1px rgba(16,185,129,0.5), 0 1px 2px rgba(0,0,0,0.3)',
+                    backgroundColor: '#10b981',
                   }}
                 />
               </div>
@@ -422,16 +420,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Status progress bar for tickets without subtasks (own status drives the fill) */}
         {children.length === 0 && (
           <div
-            className="mt-2 h-2 w-full overflow-hidden rounded-full border border-gray-200 bg-gray-100"
-            style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)' }}
+            className="mt-2 h-2.5 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
+            style={{ borderRadius: '6px 5px 7px 5px / 5px 7px 5px 6px', filter: 'url(#hand-rough)' }}
           >
             <div
-              className="h-full rounded-full transition-all duration-300"
+              className="h-full transition-all duration-300"
               style={{
                 width: `${ownStatusPercent}%`,
-                backgroundColor: 'rgba(16,185,129,0.6)',
-                backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0) 75%)',
-                boxShadow: 'inset 0 0 0 1px rgba(16,185,129,0.5), 0 1px 2px rgba(0,0,0,0.3)',
+                backgroundColor: '#10b981',
               }}
             />
           </div>

@@ -337,3 +337,71 @@
     --gantt-connector: rgba(148, 163, 184, 0.5);
     --gantt-connector-arrow: rgba(148, 163, 184, 0.6);
 }
+
+/* ------------------------------------------------------------------ */
+/* Excalidraw / hand-drawn Statistics dashboard                        */
+/* The wobbly borders reuse the same feTurbulence + feDisplacementMap  */
+/* trick as the Gantt bars, but painted on a separate ::before layer   */
+/* so the card content (text, numbers) stays crisp and undistorted.    */
+/* ------------------------------------------------------------------ */
+.excali {
+    --excali-ink: #1e293b;          /* slate-800 — the "pen" colour */
+    --excali-card: #ffffff;
+    --excali-muted: #64748b;
+}
+.dark .excali {
+    --excali-ink: #e2e8f0;          /* slate-200 pen on dark canvas */
+    --excali-card: #1e293b;
+    --excali-muted: #94a3b8;
+}
+
+/* A sketchy panel: real background + a hand-drawn ink outline on ::before. */
+.excali-box {
+    position: relative;
+    background: var(--excali-card);
+    border-radius: 16px;
+}
+.excali-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Deliberately uneven corner radii read as drawn-by-hand. */
+    border-radius: 16px 14px 18px 13px / 14px 17px 13px 16px;
+    border: 2px solid var(--excali-ink);
+    filter: url(#stat-rough);
+    pointer-events: none;
+}
+
+/* KPI tiles: flat vibrant fill + dark sketchy outline (no gradient/gloss). */
+.excali-tile {
+    position: relative;
+    border-radius: 18px;
+    overflow: visible;
+}
+.excali-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px 15px 19px 14px / 15px 18px 14px 17px;
+    border: 2.5px solid var(--excali-ink);
+    filter: url(#stat-rough);
+    pointer-events: none;
+}
+
+/* Sketchy meter: transparent track with an ink outline, flat wobbly fill. */
+.excali-track {
+    position: relative;
+    background: transparent;
+    border: 2px solid var(--excali-ink);
+    border-radius: 999px;
+    overflow: hidden;
+    filter: url(#stat-rough);
+}
+.excali-fill {
+    height: 100%;
+}
+
+/* Handwriting is already the global font; this just tightens display sizing. */
+.excali-hand {
+    letter-spacing: 0.01em;
+}

@@ -322,10 +322,18 @@ const Statistics: React.FC<StatisticsProps> = ({
 	return (
 		<div className="min-h-full">
 			{/* The doodle background is provided centrally by Layout for non-board pages. */}
-		<div className="max-w-7xl mx-auto p-6 space-y-8">
+		<div className="excali max-w-7xl mx-auto p-6 space-y-8">
+			{/* Hand-drawn "rough" filter, shared by every sketchy border/bar on this
+			    page (feTurbulence displaces the edges so they wobble like ink). */}
+			<svg aria-hidden="true" width="0" height="0" className="pointer-events-none absolute">
+				<filter id="stat-rough" x="-6%" y="-6%" width="112%" height="112%">
+					<feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves={2} seed={5} result="noise" />
+					<feDisplacementMap in="SourceGraphic" in2="noise" scale={3} xChannelSelector="R" yChannelSelector="G" />
+				</filter>
+			</svg>
 			{/* Header */}
 			<div className="text-center">
-				<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+				<h1 className="excali-hand text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
 					{projectName ? `${projectName} Statistics` : 'Project Statistics'}
 				</h1>
 				<p className="text-gray-500 dark:text-gray-400">
@@ -333,43 +341,45 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</p>
 			</div>
 
-			{/* Key Metrics Cards — bold gradient insight tiles */}
+			{/* Key Metrics Cards — flat Excalidraw tiles: solid fill, hand-drawn ink outline */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 				{[
-					{ label: 'Total Tasks', value: `${statistics.totalTasks}`, gradient: 'from-blue-500 via-indigo-500 to-indigo-700' },
-					{ label: 'Completed', value: `${statistics.completedTasks}`, gradient: 'from-emerald-400 via-emerald-500 to-green-700' },
-					{ label: 'Completion', value: `${statistics.completionPercentage}%`, gradient: 'from-violet-500 via-purple-500 to-purple-700' },
-					{ label: 'Drafts', value: `${statistics.draftCount}`, gradient: 'from-amber-400 via-orange-500 to-orange-600' },
+					{ label: 'Total Tasks', value: `${statistics.totalTasks}`, color: '#6366f1' },
+					{ label: 'Completed', value: `${statistics.completedTasks}`, color: '#10b981' },
+					{ label: 'Completion', value: `${statistics.completionPercentage}%`, color: '#8b5cf6' },
+					{ label: 'Drafts', value: `${statistics.draftCount}`, color: '#f59e0b' },
 				].map((card) => (
 					<div
 						key={card.label}
-						className={`relative overflow-hidden rounded-3xl p-6 min-h-[150px] flex flex-col justify-between text-white shadow-lg bg-gradient-to-br ${card.gradient}`}
+						className="excali-tile p-6 min-h-[150px] flex flex-col justify-between text-white"
+						style={{ backgroundColor: card.color }}
 					>
 						<svg
 							aria-hidden="true"
 							viewBox="0 0 100 100"
-							className="pointer-events-none absolute -right-3 -bottom-4 h-32 w-32 text-white/25"
+							className="pointer-events-none absolute right-2 bottom-1 h-28 w-28 text-white/30"
 							fill="none"
 							stroke="currentColor"
 							strokeWidth={2.5}
 							strokeLinecap="round"
 							strokeLinejoin="round"
+							style={{ filter: 'url(#stat-rough)' }}
 						>
 							{projectDoodle}
 						</svg>
-						<p className="relative text-sm font-medium text-white/85">{card.label}</p>
-						<p className="relative text-4xl font-bold tracking-tight">{card.value}</p>
+						<p className="relative text-sm font-medium text-white/90">{card.label}</p>
+						<p className="excali-hand relative text-5xl font-bold tracking-tight">{card.value}</p>
 					</div>
 				))}
 			</div>
 
 			{/* Progress Bar */}
-			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-				<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h2>
-				<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-circle h-4 mb-2">
-					<div 
-						className="bg-gradient-to-r from-blue-500 to-green-500 h-4 rounded-circle transition-all duration-300"
-						style={{ width: `${statistics.completionPercentage}%` }}
+			<div className="excali-box p-6">
+				<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h2>
+				<div className="excali-track w-full h-5 mb-2">
+					<div
+						className="excali-fill transition-all duration-300"
+						style={{ width: `${statistics.completionPercentage}%`, backgroundColor: '#10b981' }}
 					></div>
 				</div>
 				<div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
@@ -381,8 +391,8 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Status and Priority Distribution */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Status Distribution */}
-				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h2>
+				<div className="excali-box p-6">
+					<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Status Distribution</h2>
 					<div className="space-y-4">
 						{Object.entries(statistics.statusCounts)
 							.filter(([, count]) => count > 0)
@@ -401,10 +411,10 @@ const Statistics: React.FC<StatisticsProps> = ({
 											{Math.round((count / statistics.totalTasks) * 100)}%
 										</div>
 									</div>
-									<div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-circle h-2">
-										<div 
-											className="bg-blue-500 h-2 rounded-circle transition-all duration-300"
-											style={{ width: `${(count / statistics.totalTasks) * 100}%` }}
+									<div className="excali-track w-16 h-2.5">
+										<div
+											className="excali-fill transition-all duration-300"
+											style={{ width: `${(count / statistics.totalTasks) * 100}%`, backgroundColor: '#6366f1' }}
 										></div>
 									</div>
 								</div>
@@ -414,8 +424,8 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Priority Distribution */}
-				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h2>
+				<div className="excali-box p-6">
+					<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Priority Distribution</h2>
 					<div className="space-y-4">
 						{priorityBreakdown.map(({ key, priority, label, count }) => (
 							<div key={key} className="flex items-center justify-between">
@@ -432,10 +442,10 @@ const Statistics: React.FC<StatisticsProps> = ({
 											{Math.round((count / statistics.totalTasks) * 100)}%
 										</div>
 									</div>
-									<div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-circle h-2">
+									<div className="excali-track w-16 h-2.5">
 										<div
-											className="bg-yellow-500 h-2 rounded-circle transition-all duration-300"
-											style={{ width: `${(count / statistics.totalTasks) * 100}%` }}
+											className="excali-fill transition-all duration-300"
+											style={{ width: `${(count / statistics.totalTasks) * 100}%`, backgroundColor: '#f59e0b' }}
 										></div>
 									</div>
 								</div>
@@ -448,8 +458,8 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Recent Activity */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				{/* Recently Created */}
-				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h2>
+				<div className="excali-box p-6">
+					<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recently Created</h2>
 					{statistics.recentActivity.created.length > 0 ? (
 						<div className="space-y-3">
 							{statistics.recentActivity.created.map((task) => (
@@ -466,8 +476,8 @@ const Statistics: React.FC<StatisticsProps> = ({
 				</div>
 
 				{/* Recently Updated */}
-				<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h2>
+				<div className="excali-box p-6">
+					<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Recently Updated</h2>
 					{statistics.recentActivity.updated.length > 0 ? (
 						<div className="space-y-3">
 							{statistics.recentActivity.updated.map((task) => (
@@ -485,9 +495,9 @@ const Statistics: React.FC<StatisticsProps> = ({
 			</div>
 
 			{/* Project Health - Completely redesigned as a summary row */}
-			<div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
+			<div className="excali-box p-4">
 				<div className="flex items-center justify-between">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Project Health</h2>
+					<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100">Project Health</h2>
 					
 					<div className="flex items-center space-x-4 text-sm">
 						<div className="flex items-center space-x-1">

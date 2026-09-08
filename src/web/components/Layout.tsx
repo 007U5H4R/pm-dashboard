@@ -42,6 +42,16 @@ export default function Layout({
 	const doodleUrl = DOODLES[doodleKey];
 	return (
 		<div className="relative isolate h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200">
+			{/* App-wide hand-drawn "rough" filter (feTurbulence displaces edges so
+			    borders/fills wobble like ink). Referenced by the Kanban card
+			    progress bars via url(#hand-rough); mounted once here so it's present
+			    on every page under the Outlet. */}
+			<svg aria-hidden="true" width="0" height="0" className="pointer-events-none absolute">
+				<filter id="hand-rough" x="-10%" y="-40%" width="120%" height="180%">
+					<feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves={2} seed={9} result="noise" />
+					<feDisplacementMap in="SourceGraphic" in2="noise" scale={1.8} xChannelSelector="R" yChannelSelector="G" />
+				</filter>
+			</svg>
 			<HealthIndicator />
 			<SideNavigation 
 				taskCount={tasks.length}
