@@ -459,7 +459,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </div>
       </div>
       <span className="ticket-notch-shadow-l" aria-hidden="true" />
-      <span className="ticket-notch-shadow-r" aria-hidden="true" />
     </div>
   );
 };

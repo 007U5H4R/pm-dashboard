@@ -290,21 +290,14 @@
    card (a drop-shadow can't fall inside a concavity, and children of the card
    would be clipped by its mask), so they paint a shadow crescent on top,
    right at the notch rim, fading toward the card interior. */
-.ticket-notch-shadow-l,
-.ticket-notch-shadow-r {
+.ticket-notch-shadow-l {
     position: absolute;
     top: 50%;
-    width: 22px;
-    height: 44px;
+    left: 0;
+    width: 16px;
+    height: 40px;
     transform: translateY(-50%);
     pointer-events: none;
     z-index: 1;
-}
-.ticket-notch-shadow-l {
-    left: 0;
-    background: radial-gradient(circle 11px at 0 50%, transparent 0 10px, rgb(0 0 0 / 0.28) 11px, transparent 19px);
-}
-.ticket-notch-shadow-r {
-    right: 0;
-    background: radial-gradient(circle 11px at 100% 50%, transparent 0 10px, rgb(0 0 0 / 0.28) 11px, transparent 19px);
+    background: radial-gradient(circle 11px at 0 50%, transparent 0 10.5px, rgb(0 0 0 / 0.2) 11px, transparent 15px);
 }
