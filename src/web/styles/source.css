@@ -290,14 +290,50 @@
    card (a drop-shadow can't fall inside a concavity, and children of the card
    would be clipped by its mask), so they paint a shadow crescent on top,
    right at the notch rim, fading toward the card interior. */
-.ticket-notch-shadow-l {
+/* Both notches get a thin slate-grey arc line hugging the curve, so the left
+   and right cutouts look uniform (a soft grey edge, not a heavy black shadow). */
+.ticket-notch-shadow-l,
+.ticket-notch-shadow-r {
     position: absolute;
     top: 50%;
-    left: 0;
-    width: 16px;
-    height: 40px;
+    width: 18px;
+    height: 44px;
     transform: translateY(-50%);
     pointer-events: none;
     z-index: 1;
-    background: radial-gradient(circle 11px at 0 50%, transparent 0 10.5px, rgb(0 0 0 / 0.2) 11px, transparent 15px);
+    /* Fade the arc's top and bottom tips so the curved border tapers into the
+       straight edge, matching how the left accent rail tapers into the notch. */
+    -webkit-mask: linear-gradient(to bottom, transparent 14%, #000 42%, #000 58%, transparent 86%);
+            mask: linear-gradient(to bottom, transparent 14%, #000 42%, #000 58%, transparent 86%);
+}
+/* Left notch: a thick 4px grey border arc to match the 4px priority-accent rail
+   on the left edge (both left edge and left notch read the same weight). */
+.ticket-notch-shadow-l {
+    left: 0;
+    background: radial-gradient(circle 11px at 0 50%, transparent 0 10.8px, rgb(148 163 184 / 0.65) 11px, rgb(148 163 184 / 0.65) 15px, transparent 15.4px);
+}
+/* Right notch: same 4px tapered grey arc as the left notch, so both notches
+   read uniform and stay visible in light mode (gray-200 vanished on white). */
+.ticket-notch-shadow-r {
+    right: 0;
+    background: radial-gradient(circle 11px at 100% 50%, transparent 0 10.8px, rgb(148 163 184 / 0.65) 11px, rgb(148 163 184 / 0.65) 15px, transparent 15.4px);
+}
+.dark .ticket-notch-shadow-l {
+    background: radial-gradient(circle 11px at 0 50%, transparent 0 10.8px, rgb(148 163 184 / 0.5) 11px, rgb(148 163 184 / 0.5) 15px, transparent 15.4px);
+}
+.dark .ticket-notch-shadow-r {
+    background: radial-gradient(circle 11px at 100% 50%, transparent 0 10.8px, rgb(148 163 184 / 0.5) 11px, rgb(148 163 184 / 0.5) 15px, transparent 15.4px);
+}
+
+/* Gantt / Workflow chart theme tokens (frozen-column bg uses dark: classes;
+   these cover the inline gridline + dependency-connector colors). */
+.gantt-chart {
+    --gantt-grid-line: rgba(15, 23, 42, 0.06);
+    --gantt-connector: rgba(15, 23, 42, 0.3);
+    --gantt-connector-arrow: rgba(15, 23, 42, 0.4);
+}
+.dark .gantt-chart {
+    --gantt-grid-line: rgba(148, 163, 184, 0.16);
+    --gantt-connector: rgba(148, 163, 184, 0.5);
+    --gantt-connector-arrow: rgba(148, 163, 184, 0.6);
 }
