@@ -50,7 +50,28 @@ let activeRoot: Root | null = null;
 let activeDom: JSDOM | null = null;
 const originalFetch = globalThis.fetch;
 const originalWebSocket = globalThis.WebSocket;
+const originalSetInterval = globalThis.setInterval;
+const originalClearInterval = globalThis.clearInterval;
 const originalResizeObserver = globalThis.ResizeObserver;
+
+// Records interval timers so a test can identify the data-socket poll interval and assert it is
+// cleared on reconnect. Delegates to the real timers (15–20s cadence never fires in a test window).
+type IntervalSpy = { calls: Array<{ id: unknown; cb: () => void }>; cleared: unknown[] };
+let intervalSpy: IntervalSpy | null = null;
+const installIntervalSpy = (): IntervalSpy => {
+	const spy: IntervalSpy = { calls: [], cleared: [] };
+	globalThis.setInterval = ((cb: () => void, ms?: number, ...rest: unknown[]) => {
+		const id = (originalSetInterval as (h: () => void, t?: number, ...a: unknown[]) => unknown)(cb, ms, ...rest);
+		spy.calls.push({ id, cb });
+		return id;
+	}) as unknown as typeof setInterval;
+	globalThis.clearInterval = ((id: unknown) => {
+		spy.cleared.push(id);
+		return (originalClearInterval as (h: unknown) => void)(id);
+	}) as unknown as typeof clearInterval;
+	intervalSpy = spy;
+	return spy;
+};
 const originalEvent = globalThis.Event;
 const originalCustomEvent = globalThis.CustomEvent;
 const originalElement = globalThis.Element;
@@ -70,6 +91,12 @@ class FakeWebSocket {
 
 	constructor() {
 		FakeWebSocket.instances.push(this);
+		// Fire onopen after the caller has attached its handlers (App assigns onopen synchronously
+		// right after construction). A socket closed before the microtask runs (StrictMode's throwaway
+		// mount) stays silent.
+		queueMicrotask(() => {
+			if (this.readyState === FakeWebSocket.OPEN) this.onopen?.();
+		});
 	}
 
 	deliver(data: string) {
@@ -182,6 +209,23 @@ const settle = async () => {
 	});
 };
 
+// Advance real timers so time-based effects (the socket reconnect backoff) can fire.
+const advance = async (ms: number) => {
+	const step = 50;
+	for (let elapsed = 0; elapsed < ms; elapsed += step) {
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, step));
+		});
+	}
+};
+
+// Drop the live data socket the way a server restart / network blip does.
+const dropAppDataWebSocket = () => {
+	const socket = getAppDataWebSocket();
+	socket.readyState = FakeWebSocket.CLOSED;
+	socket.onclose?.();
+};
+
 const renderBoard = async (): Promise<HTMLElement> => {
 	setupDom("/board");
 	const container = document.getElementById("root") as HTMLElement;
@@ -215,8 +259,11 @@ afterEach(() => {
 		activeRoot = null;
 	}
 	FakeWebSocket.instances = [];
+	intervalSpy = null;
 	globalThis.fetch = originalFetch;
 	globalThis.WebSocket = originalWebSocket;
+	globalThis.setInterval = originalSetInterval;
+	globalThis.clearInterval = originalClearInterval;
 	globalThis.ResizeObserver = originalResizeObserver;
 	globalThis.Event = originalEvent;
 	globalThis.CustomEvent = originalCustomEvent;
@@ -436,5 +483,57 @@ describe("in-place data refresh", () => {
 			"/api/statuses",
 			"/api/tasks/duplicates",
 		]);
+	});
+
+	it("reconnects after a socket drop and full-refreshes to catch a change made while down", async () => {
+		tasks = [makeTask("TASK-1", "Original title", "To Do")];
+		const container = await renderBoard();
+
+		// The socket dies silently (server restart / laptop sleep). A change lands while it is down.
+		await act(async () => {
+			dropAppDataWebSocket();
+		});
+		tasks = [makeTask("TASK-1", "Renamed while down", "To Do")];
+
+		// The reconnect backoff (min 1s) opens a fresh socket, whose open triggers a full catch-up.
+		await advance(1300);
+		await waitFor(() => (container.textContent ?? "").includes("Renamed while down"), "change caught after reconnect");
+		await settle();
+
+		// The board is live again on a new socket...
+		expect(() => getAppDataWebSocket()).not.toThrow();
+		// ...and the catch-up was a full reload (not just an incremental search), so nothing missed
+		// while the socket was down can be left stale.
+		const paths = new Set(requestLog);
+		expect(paths.has("/api/config")).toBe(true);
+		expect(paths.has("/api/statuses")).toBe(true);
+		expect(paths.has("/api/search")).toBe(true);
+		expect(hasLoadingShell(container)).toBe(false);
+	});
+
+	it("polls the incremental refresh while the socket is down and stops on reconnect", async () => {
+		installIntervalSpy();
+		tasks = [makeTask("TASK-1", "Poll card", "To Do")];
+		await renderBoard();
+		const spy = intervalSpy as IntervalSpy;
+
+		const intervalsBeforeDrop = spy.calls.length;
+		requestLog = [];
+		await act(async () => {
+			dropAppDataWebSocket();
+		});
+		await settle();
+
+		// While the socket is down, the safety net polls the incremental refresh immediately...
+		expect(requestLog).toContain("/api/search");
+		// ...on a repeating interval, registered only after the drop.
+		expect(spy.calls.length).toBe(intervalsBeforeDrop + 1);
+		const pollTimerId = spy.calls[spy.calls.length - 1]?.id;
+
+		// Reconnecting opens a fresh socket, which stops the poll interval.
+		await advance(1300);
+		await settle();
+		expect(() => getAppDataWebSocket()).not.toThrow();
+		expect(spy.cleared).toContain(pollTimerId);
 	});
 });

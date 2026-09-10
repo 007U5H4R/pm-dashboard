@@ -25,6 +25,10 @@ interface ProjectsResponse {
 
 const PROJECT_STORAGE_KEY = 'pm.activeProjectId';
 
+// The registry can gain a project while the board is open (a newly-onboarded project). Re-poll the
+// list quietly so it appears in the switcher without a manual reload.
+const PROJECTS_POLL_MS = 20000;
+
 /** Wipe a stale/legacy stored selection so it can't cause the same 404 on the next load. */
 function clearStoredProjectId(): void {
   try {
@@ -49,6 +53,26 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const [generation, setGeneration] = useState(0);
 
+  // Apply a successful projects response: refresh the list and reconcile the active selection. Shared
+  // by the initial load and the background poll so the reconcile rule lives in one place.
+  const applyProjectsResponse = useCallback((body: ProjectsResponse) => {
+    setProjects(body.projects);
+    setDefaultProjectId(body.defaultProjectId);
+    setError(null);
+    const known = new Set(body.projects.map(p => p.id));
+    setProjectIdState(current => {
+      const resolved = current !== null && known.has(current) ? current : body.defaultProjectId;
+      // A stale id (project removed from the registry) or a first run with none stored both
+      // land here with resolved !== current: reconcile storage too, so the next load doesn't
+      // repeat the same 404 against a project that no longer exists.
+      if (resolved !== current) {
+        setActiveProjectId(resolved);
+        storeProjectId(resolved);
+      }
+      return resolved;
+    });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -58,21 +82,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         if (!response.ok) throw new Error(`GET /api/projects → ${response.status}`);
         const body = (await response.json()) as ProjectsResponse;
         if (cancelled) return;
-        setProjects(body.projects);
-        setDefaultProjectId(body.defaultProjectId);
-        setError(null);
-        const known = new Set(body.projects.map(p => p.id));
-        setProjectIdState(current => {
-          const resolved = current !== null && known.has(current) ? current : body.defaultProjectId;
-          // A stale id (project removed from the registry) or a first run with none stored both
-          // land here with resolved !== current: reconcile storage too, so the next load doesn't
-          // repeat the same 404 against a project that no longer exists.
-          if (resolved !== current) {
-            setActiveProjectId(resolved);
-            storeProjectId(resolved);
-          }
-          return resolved;
-        });
+        applyProjectsResponse(body);
       } catch (err) {
         if (cancelled) return;
         // Legacy single-project server (or outage): keep /api unprefixed so the app still works,
@@ -90,7 +100,25 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [generation]);
+  }, [generation, applyProjectsResponse]);
+
+  // Background poll: pick up a project onboarded after this page loaded, without a reload or a
+  // loading flash. A transient failure is ignored so the working multi-project state isn't torn
+  // down — the next tick (or the app's data-socket reconnect) recovers it.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void (async () => {
+        try {
+          const response = await fetch('/api/projects');
+          if (!response.ok) return;
+          applyProjectsResponse((await response.json()) as ProjectsResponse);
+        } catch {
+          // ignore background-poll failures
+        }
+      })();
+    }, PROJECTS_POLL_MS);
+    return () => clearInterval(timer);
+  }, [applyProjectsResponse]);
 
   const setProjectId = useCallback((id: string) => {
     setActiveProjectId(id);

@@ -211,6 +211,13 @@ type TaskModalState =
       value: Task | TaskDetail | null;
     };
 
+// The data WebSocket reconnects with capped exponential backoff (mirrors the health socket in
+// useHealthCheck), and while it is down a slow poll of the incremental refresh keeps the board
+// eventually consistent even if the socket can't be re-established.
+const DATA_WS_RECONNECT_MIN_MS = 1000;
+const DATA_WS_RECONNECT_MAX_MS = 30000;
+const DATA_WS_POLL_MS = 15000;
+
 function AppContent() {
   const [modal, setModal] = useState<TaskModalState>({ kind: 'closed' });
   // Each entry into the modal takes the next session number, so a response can name the modal it
@@ -806,49 +813,114 @@ function AppContent() {
   }, [detailSession, detailId, dataVersion]);
 
   useEffect(() => {
-    const ws = new WebSocket(buildWebSocketUrl());
-	let disposed = false;
-    ws.onmessage = (event) => {
-	  const loadingState = parseBrowserLoadingState(event.data);
-	  if (loadingState?.type === 'loading') {
-		if (pendingDataRequestRef.current === null) protocolOnlyLoadingRef.current = true;
-		// Once content is on screen it stays interactive; the header indexing
-		// indicator (driven by loadingMessage) is the only loading signal. A new
-		// loading attempt always clears a stale terminal error, so a passive
-		// client shows its cached content instead of the obsolete failure.
-		if (!hasLoadedDataRef.current) setIsLoading(true);
-		applyLoadError(null);
-		setLoadingMessage(loadingState.message);
-	  } else if (loadingState?.type === 'loaded') {
-		const shouldRefresh = protocolOnlyLoadingRef.current && pendingDataRequestRef.current === null;
-		protocolOnlyLoadingRef.current = false;
-		setLoadingMessage(null);
-		// Indexing can surface cross-branch data (including duplicate findings)
-		// that an incremental reconcile would miss, so reload everything.
-		if (shouldRefresh) void fullRefreshData();
-	  } else if (loadingState?.type === 'error') {
-		protocolOnlyLoadingRef.current = false;
-		setIsLoading(false);
-		setLoadingMessage(null);
-		applyLoadError(new Error(loadingState.message));
-      } else if (event.data === "tasks-updated") {
-        void refreshData();
-      } else if (event.data === "milestones-updated") {
-        void refreshMilestoneData();
-      } else if (event.data === "config-updated") {
-        // Reload statuses when config changes
-        loadAllData();
+    let disposed = false;
+    let ws: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let reconnectDelay = DATA_WS_RECONNECT_MIN_MS;
+    let hasConnectedOnce = false;
+
+    // Safety net: while the socket is down, poll the incremental refresh so the board still
+    // converges even if the socket can't be (re)established. Fires immediately on drop, then on
+    // an interval, and stops the moment the socket is OPEN again.
+    const stopPolling = () => {
+      if (pollTimer !== null) {
+        clearInterval(pollTimer);
+        pollTimer = null;
       }
     };
-	ws.onclose = () => {
-		if (disposed || !protocolOnlyLoadingRef.current || pendingDataRequestRef.current !== null) return;
-		protocolOnlyLoadingRef.current = false;
-		void fullRefreshData();
-	};
-	return () => {
-		disposed = true;
-		ws.close();
-	};
+    const startPolling = () => {
+      if (pollTimer !== null || disposed) return;
+      void refreshData();
+      pollTimer = setInterval(() => {
+        if (disposed || (ws && ws.readyState === WebSocket.OPEN)) {
+          stopPolling();
+          return;
+        }
+        void refreshData();
+      }, DATA_WS_POLL_MS);
+    };
+
+    const scheduleReconnect = () => {
+      if (disposed || reconnectTimer !== null) return;
+      const delay = reconnectDelay;
+      reconnectDelay = Math.min(reconnectDelay * 2, DATA_WS_RECONNECT_MAX_MS);
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, delay);
+    };
+
+    const connect = () => {
+      if (disposed) return;
+      ws = new WebSocket(buildWebSocketUrl());
+      ws.onopen = () => {
+        if (disposed) return;
+        reconnectDelay = DATA_WS_RECONNECT_MIN_MS;
+        stopPolling();
+        // Catch up on anything missed while the socket was down. The first open of this mount is
+        // skipped: the initial load already covers it, and a project switch remounts this effect.
+        if (hasConnectedOnce) void fullRefreshData();
+        hasConnectedOnce = true;
+      };
+      ws.onmessage = (event) => {
+        const loadingState = parseBrowserLoadingState(event.data);
+        if (loadingState?.type === 'loading') {
+          if (pendingDataRequestRef.current === null) protocolOnlyLoadingRef.current = true;
+          // Once content is on screen it stays interactive; the header indexing
+          // indicator (driven by loadingMessage) is the only loading signal. A new
+          // loading attempt always clears a stale terminal error, so a passive
+          // client shows its cached content instead of the obsolete failure.
+          if (!hasLoadedDataRef.current) setIsLoading(true);
+          applyLoadError(null);
+          setLoadingMessage(loadingState.message);
+        } else if (loadingState?.type === 'loaded') {
+          const shouldRefresh = protocolOnlyLoadingRef.current && pendingDataRequestRef.current === null;
+          protocolOnlyLoadingRef.current = false;
+          setLoadingMessage(null);
+          // Indexing can surface cross-branch data (including duplicate findings)
+          // that an incremental reconcile would miss, so reload everything.
+          if (shouldRefresh) void fullRefreshData();
+        } else if (loadingState?.type === 'error') {
+          protocolOnlyLoadingRef.current = false;
+          setIsLoading(false);
+          setLoadingMessage(null);
+          applyLoadError(new Error(loadingState.message));
+        } else if (event.data === "tasks-updated") {
+          void refreshData();
+        } else if (event.data === "milestones-updated") {
+          void refreshMilestoneData();
+        } else if (event.data === "config-updated") {
+          // Reload statuses when config changes
+          loadAllData();
+        }
+      };
+      ws.onclose = () => {
+        if (disposed) return;
+        // Preserve the narrow protocol-only one-shot catch-up (indexing dropped the socket).
+        if (protocolOnlyLoadingRef.current && pendingDataRequestRef.current === null) {
+          protocolOnlyLoadingRef.current = false;
+          void fullRefreshData();
+        }
+        startPolling();
+        scheduleReconnect();
+      };
+      // onerror leads to onclose in browsers, so reconnect is handled there.
+    };
+
+    connect();
+
+    return () => {
+      disposed = true;
+      if (reconnectTimer !== null) clearTimeout(reconnectTimer);
+      stopPolling();
+      if (ws) {
+        // Null the close handler so teardown doesn't schedule a reconnect for a socket we're
+        // deliberately closing (unmount or project switch).
+        ws.onclose = null;
+        ws.close();
+      }
+    };
   }, [refreshData, refreshMilestoneData, fullRefreshData, loadAllData, applyLoadError]);
 
   const handleSubmitTask = async (taskData: Partial<Task>) => {
