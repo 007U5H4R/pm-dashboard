@@ -29,6 +29,6 @@ describe("SideNavigation Gantt link", () => {
 		const gantt = html.indexOf('href="/gantt"');
 		expect(board).toBeGreaterThan(-1);
 		expect(gantt).toBeGreaterThan(board);
-		expect(html).toContain(">Gantt<");
+		expect(html).toContain(">Execution Gantt<");
 	});
 });

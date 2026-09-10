@@ -54,35 +54,33 @@ const renderBoard = (isLoading: boolean, error?: Error): string =>
 	);
 
 describe("SideNavigation task loading", () => {
-	it("keeps navigation mounted while only the task count is loading", () => {
+	it("keeps navigation mounted while only the counts are loading", () => {
 		const loading = renderNavigation(true, 0);
 		expect(loading).toContain("Kanban Board");
 		expect(loading).toContain("All Tasks");
-		expect(loading).toContain('aria-label="Loading task count"');
-		expect(loading).toContain('aria-label="Loading document count"');
+		expect(loading).toContain('aria-label="Loading artifact count"');
 		expect(loading).toContain('aria-label="Loading decision count"');
 		expect(loading).toContain('aria-label="Loading content"');
-		expect(loading).not.toContain("No documents");
+		expect(loading).not.toContain("No artifacts");
 		expect(loading).not.toContain("No decisions");
 
 		const loaded = renderNavigation(false, 3).replaceAll("<!-- -->", "");
 		expect(loaded).toContain("Kanban Board");
 		expect(loaded).toContain("All Tasks");
-		expect(loaded).toContain("Tasks (3)");
-		expect(loaded).toContain("Documents (0)");
+		expect(loaded).toContain("Artifacts (0)");
 		expect(loaded).toContain("Decisions (0)");
-		expect(loaded).toContain("No documents");
+		expect(loaded).toContain("No artifacts");
 		expect(loaded).toContain("No decisions");
-		expect(loaded).not.toContain('aria-label="Loading task count"');
+		expect(loaded).not.toContain('aria-label="Loading artifact count"');
 	});
 
 	it("shows a distinct unavailable presentation and exposes retry after a corpus failure", () => {
 		const failed = renderNavigation(false, 0, new Error("corpus failed"));
 		expect(failed).toContain("Failed to load navigation");
 		expect(failed).toContain("Retry");
-		expect(failed).toContain('aria-label="task count unavailable"');
-		expect(failed).not.toContain('aria-label="Loading task count"');
-		expect(failed).not.toContain("No documents");
+		expect(failed).toContain('aria-label="artifact count unavailable"');
+		expect(failed).not.toContain('aria-label="Loading artifact count"');
+		expect(failed).not.toContain("No artifacts");
 		expect(failed).not.toContain("No decisions");
 	});
 
