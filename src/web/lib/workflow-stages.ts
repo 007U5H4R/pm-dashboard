@@ -55,13 +55,31 @@ export function computeWorkflowStages(tasks: Task[], docs: Document[]): Workflow
 		execHours = Math.max(1, Math.round((maxFinish - minStart) / UNIT_MS));
 	}
 
-	const stageTasks: Task[] = STAGES.map((stage, index) => {
-		let status = "To Do";
+	// Raw per-stage status from its own signal: doc-artifact existence (stages 1–5) or ticket
+	// completion (Execution). Stages after Execution have no signal yet.
+	const rawStatus = STAGES.map((stage) => {
 		if (stage.execution) {
-			status = total === 0 ? "To Do" : done === total ? "Done" : done > 0 ? "In Progress" : "To Do";
-		} else if (stage.docMatch && docTitles.some((title) => stage.docMatch!.test(title))) {
-			status = "Done";
+			return total === 0 ? "To Do" : done === total ? "Done" : done > 0 ? "In Progress" : "To Do";
 		}
+		if (stage.docMatch && docTitles.some((title) => stage.docMatch!.test(title))) {
+			return "Done";
+		}
+		return "To Do";
+	});
+
+	// The stages are a dependency chain, so completing a later stage means every earlier one is
+	// already complete. "Evidence a stage was reached" is its artifact for stages 1–5, and *any*
+	// ticket existing for Execution (tickets can't exist without breakdown + planning). Force every
+	// stage before the furthest-reached one to Done, so the chain can never show a later stage moving
+	// while its prerequisites read incomplete — even if an earlier stage's artifact wasn't detected.
+	const reached = STAGES.map((stage, index) => (stage.execution ? total > 0 : rawStatus[index] === "Done"));
+	let furthestReached = -1;
+	reached.forEach((isReached, index) => {
+		if (isReached) furthestReached = index;
+	});
+
+	const stageTasks: Task[] = STAGES.map((stage, index) => {
+		const status = index < furthestReached ? "Done" : rawStatus[index];
 		const stageHours = stage.execution ? execHours : Math.max(1, Math.round(execHours * stage.weight));
 		return {
 			id: `STAGE-${index + 1}`,
