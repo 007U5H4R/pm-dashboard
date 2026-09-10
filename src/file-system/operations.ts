@@ -288,19 +288,35 @@ function htmlDocumentTitle(html: string, fallback: string): string {
 	return fallback;
 }
 
+/** Title of a frontmatter-less markdown file: its first `# ` heading, else the filename. */
+function markdownDocumentTitle(markdown: string, fallback: string): string {
+	const heading = markdown.match(/^\s{0,3}#\s+(.+?)\s*$/m)?.[1];
+	return heading?.trim() || fallback;
+}
+
 /**
- * Build a Document for a non-markdown artifact (HTML/PDF). These files carry no frontmatter, so the
- * id is derived from the path, the title from the file's own <title>/<h1> (HTML) or filename, and the
- * dates from the filesystem mtime. HTML content is inlined as rawContent so the viewer can render it
+ * Build a Document for a file that carries no frontmatter (project artifacts: Markdown/HTML/PDF). The
+ * id is derived from the path, the title from the file's own heading/<title> or filename, and the dates
+ * from the filesystem mtime. Markdown and HTML are inlined as rawContent so the viewer can render them
  * directly; binary formats (PDF) carry no rawContent and are streamed via the raw endpoint.
  */
-async function buildArtifactDocument(filepath: string, relativePath: string, ext: string): Promise<Document> {
+async function buildArtifactDocument(
+	filepath: string,
+	relativePath: string,
+	ext: string,
+	opts?: { readOnly?: boolean },
+): Promise<Document> {
 	const filename = basename(relativePath, extname(relativePath));
 	const bunFile = Bun.file(filepath);
 	const modifiedIso = bunFile.lastModified ? new Date(bunFile.lastModified).toISOString() : "";
 	const isHtml = ext === ".html" || ext === ".htm";
-	const rawContent = isHtml ? await bunFile.text() : "";
-	const title = isHtml ? htmlDocumentTitle(rawContent, filename) : filename;
+	const isMarkdown = ext === ".md";
+	const rawContent = isHtml || isMarkdown ? await bunFile.text() : "";
+	const title = isHtml
+		? htmlDocumentTitle(rawContent, filename)
+		: isMarkdown
+			? markdownDocumentTitle(rawContent, filename)
+			: filename;
 	return {
 		id: artifactDocumentId(relativePath),
 		title,
@@ -309,7 +325,75 @@ async function buildArtifactDocument(filepath: string, relativePath: string, ext
 		updatedDate: modifiedIso || undefined,
 		rawContent,
 		path: relativePath,
+		...(opts?.readOnly ? { readOnly: true } : {}),
 	};
+}
+
+// Tooling/scaffolding files that live at a project root but are not project documents.
+const ARTIFACT_SCAN_DENYLIST = new Set([
+	"readme.md",
+	"agents.md",
+	"claude.md",
+	"gemini.md",
+	"contributing.md",
+	"changelog.md",
+	"license.md",
+	"code_of_conduct.md",
+	"security.md",
+]);
+// Subfolders (relative to the project root) that hold presentation documents worth surfacing. Kept
+// deliberately narrow: `decks/` holds pitch decks, whereas a `docs/` tree is often execution scratch
+// (per-task briefs/reports) that would flood the Artifacts list, so it is not auto-scanned.
+const ARTIFACT_SCAN_SUBDIRS = ["decks"] as const;
+
+/**
+ * Discover project-level documents that live outside backlog/docs — the build-workflow artifacts kept
+ * at the project root (PRDs, Design, plans, tickets, …) plus anything under docs/ or decks/. These are
+ * read-only mirrors of files the app doesn't own, so onboarded projects surface their real documents
+ * without a manual import. `skipTitles` (normalized) drops anything already listed from backlog/docs so
+ * a project that keeps its docs in both places isn't shown twice.
+ */
+async function listProjectArtifacts(projectRoot: string, skipTitles: Set<string>): Promise<Document[]> {
+	const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+	const docs: Document[] = [];
+	const seen = new Set<string>();
+	const addFile = async (absPath: string, relPath: string, ext: string) => {
+		// Dedup by normalized filename stem so a document that exists in two formats (e.g. a pitch deck
+		// as both .html and .pdf) is surfaced once, and so is anything already listed from backlog/docs.
+		const key = normalize(basename(relPath, extname(relPath)));
+		if (seen.has(key) || skipTitles.has(key)) return;
+		seen.add(key);
+		docs.push(await buildArtifactDocument(absPath, relPath, ext, { readOnly: true }));
+	};
+
+	try {
+		// Root, depth 1 only (never descend into source trees): markdown (minus tooling files) + PDFs.
+		const rootGlob = new Bun.Glob("*.{md,pdf}");
+		for (const file of await Array.fromAsync(rootGlob.scan({ cwd: projectRoot, followSymlinks: true }))) {
+			const base = file.toLowerCase();
+			if (ARTIFACT_SCAN_DENYLIST.has(base)) continue;
+			await addFile(join(projectRoot, file), file, extname(base));
+		}
+	} catch {
+		// project root unreadable — nothing to surface
+	}
+
+	// Curated document subfolders (recursive): markdown + HTML + PDF.
+	for (const sub of ARTIFACT_SCAN_SUBDIRS) {
+		try {
+			const subGlob = new Bun.Glob("**/*.{md,html,htm,pdf}");
+			for (const file of await Array.fromAsync(subGlob.scan({ cwd: join(projectRoot, sub), followSymlinks: true }))) {
+				const rel = `${sub}/${file}`.replace(/\\/g, "/");
+				const base = basename(rel).toLowerCase();
+				if (ARTIFACT_SCAN_DENYLIST.has(base)) continue;
+				await addFile(join(projectRoot, sub, file), rel, extname(base));
+			}
+		} catch {
+			// subfolder missing — skip
+		}
+	}
+
+	return docs;
 }
 
 /**
@@ -1668,7 +1752,14 @@ export class FileSystem {
 				try {
 					if (ext === ".md") {
 						const content = await Bun.file(filepath).text();
-						docs.push({ ...parseDocument(content), path: relativePath });
+						const parsed = parseDocument(content);
+						// A markdown file without frontmatter (e.g. a root artifact symlinked in) has no id or
+						// title; synthesize them the same way an external artifact would.
+						docs.push(
+							parsed.id && parsed.title
+								? { ...parsed, path: relativePath }
+								: await buildArtifactDocument(filepath, relativePath, ext),
+						);
 					} else {
 						docs.push(await buildArtifactDocument(filepath, relativePath, ext));
 					}
@@ -1677,6 +1768,14 @@ export class FileSystem {
 					unreadable?.push(relativePath);
 				}
 			}
+
+			// Also surface the project's own documents that live outside backlog/docs (root artifacts,
+			// docs/, decks/), skipping anything already listed above so a project that keeps docs in both
+			// places isn't shown twice.
+			const normalizeTitle = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+			const skipTitles = new Set(docs.map((doc) => normalizeTitle(doc.title)));
+			const projectRoot = dirname(dirname(docsDir));
+			docs.push(...(await listProjectArtifacts(projectRoot, skipTitles)));
 
 			// Stable sort by title for UI/CLI listing
 			return docs.sort((a, b) => a.title.localeCompare(b.title));

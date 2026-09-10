@@ -402,7 +402,7 @@ export default function DocumentationDetail({docs, onRefreshData, dateFormat}: D
                                 </div>
                             </div>
                             <div className="flex items-center space-x-3 ml-6">
-                                {artifactFormat(document?.path) ? null : !isEditing ? (
+                                {artifactFormat(document?.path) || document?.readOnly ? null : !isEditing ? (
                                     <button
                                         onClick={handleEdit}
                                         className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors duration-200"

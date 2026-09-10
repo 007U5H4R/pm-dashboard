@@ -1256,6 +1256,7 @@ export class BacklogServer {
 				updatedDate: doc.updatedDate,
 				lastModified: doc.updatedDate || doc.createdDate,
 				tags: doc.tags || [],
+				readOnly: doc.readOnly ?? false,
 			}));
 			return Response.json(docFiles);
 		} catch (error) {
@@ -1289,14 +1290,20 @@ export class BacklogServer {
 				return new Response("Not Found", { status: 404 });
 			}
 			const docsDir = this.core.filesystem.docsDir;
-			const base = resolve(docsDir);
-			const resolved = resolve(base, ...doc.path.split("/"));
-			// Path-traversal guard: the resolved file must stay inside the docs directory.
-			if (resolved !== base && !resolved.startsWith(base + sep)) {
-				return new Response("Forbidden", { status: 403 });
+			// A backlog doc's path is docs-dir-relative; a scanned project artifact's path is
+			// project-root-relative. Try both, and require the result to stay within the project root
+			// (which contains the docs dir) so path traversal can't escape the project.
+			const projectRoot = resolve(dirname(dirname(docsDir)));
+			const segs = doc.path.split("/");
+			let resolved: string | null = null;
+			for (const candidate of [resolve(docsDir, ...segs), resolve(projectRoot, ...segs)]) {
+				if (candidate !== projectRoot && !candidate.startsWith(projectRoot + sep)) continue;
+				if (await Bun.file(candidate).exists()) {
+					resolved = candidate;
+					break;
+				}
 			}
-			const file = Bun.file(resolved);
-			if (!(await file.exists())) {
+			if (!resolved) {
 				return new Response("Not Found", { status: 404 });
 			}
 			const ext = extname(resolved).toLowerCase();
@@ -1306,7 +1313,7 @@ export class BacklogServer {
 					: ext === ".html" || ext === ".htm"
 						? "text/html; charset=utf-8"
 						: "application/octet-stream";
-			return new Response(file, {
+			return new Response(Bun.file(resolved), {
 				headers: { "Content-Type": contentType, "Cache-Control": "no-store" },
 			});
 		} catch (error) {

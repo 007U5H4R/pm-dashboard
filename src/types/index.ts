@@ -236,6 +236,9 @@ export interface Document {
 	name?: string;
 	path?: string;
 	lastModified?: string;
+	// Set for documents the app surfaces but does not own (project artifacts scanned from outside
+	// backlog/docs). The web viewer renders these but hides the editor.
+	readOnly?: boolean;
 }
 
 export interface DocumentCreateInput {
