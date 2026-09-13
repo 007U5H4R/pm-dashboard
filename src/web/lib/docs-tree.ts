@@ -28,13 +28,36 @@ export interface DocsTreeResult {
 
 const byTitle = (a: Document, b: Document) => a.title.localeCompare(b.title);
 
-/** Numeric order by the document id ("doc-N"), so a flat doc list reads in creation order rather than
- * alphabetically. Falls back to title when an id has no numeric part. */
-const byId = (a: Document, b: Document) => {
-	const na = Number(a.id.match(/(\d+)/)?.[1] ?? Number.NaN);
-	const nb = Number(b.id.match(/(\d+)/)?.[1] ?? Number.NaN);
-	if (Number.isNaN(na) || Number.isNaN(nb)) return byTitle(a, b);
-	return na - nb;
+// Order artifacts by the build-workflow stage that produces them (Discovery → … → lessons), so the
+// Artifacts list reads as the project's lifecycle. Matched against a doc's filename, else its title;
+// anything unmatched sorts after, by title.
+const DOC_STAGE_ORDER: RegExp[] = [
+	/discovery/i, // Stage 1 — Product Discovery
+	/research.?notes/i, // discovery input
+	/solution/i, // Stage 2 — Solution Design
+	/evaluation.?plan/i, // Stage 3 — Evaluation Design
+	/\bdesign\b/i, // Stage 4 — UI/UX Design
+	/milestone/i, // Stage 5 — Problem Breakdown
+	/ticket/i, // Stage 5 — Problem Breakdown
+	/technical.?plan|implementation.?plan/i, // Stage 6 — Technical Planning
+	/test.?cases/i, // Stage 6 — test plan
+	/qa.?report/i, // Stage 9/10 — consolidated QA gate
+	/eval.?report/i, // Stage 9/10 — evaluation report
+	/lesson.?learn|lessons.?learn/i, // Stage 11 — lessons learnt
+	/handoff/i, // running baton
+	/deck|pitch/i, // pitch decks
+];
+
+const stageRank = (doc: Document): number => {
+	const key = (doc.path?.split("/").pop() ?? doc.title ?? "").toLowerCase();
+	const index = DOC_STAGE_ORDER.findIndex((pattern) => pattern.test(key));
+	return index === -1 ? DOC_STAGE_ORDER.length : index;
+};
+
+/** Build-workflow stage order, then title within a stage. */
+const byStage = (a: Document, b: Document) => {
+	const delta = stageRank(a) - stageRank(b);
+	return delta !== 0 ? delta : byTitle(a, b);
 };
 
 /**
@@ -83,7 +106,7 @@ export function buildDocsTree(docs: Document[]): DocsTreeResult {
 		}
 	}
 
-	ungroupedDocs.sort(byId);
+	ungroupedDocs.sort(byStage);
 	sortTree(tree);
 	return { tree, ungroupedDocs };
 }

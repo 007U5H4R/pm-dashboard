@@ -1854,7 +1854,7 @@ export class FileSystem {
 			const projectRoot = dirname(dirname(docsDir));
 			docs.push(...(await listProjectArtifacts(projectRoot, skipTitles)));
 
-			// Stable sort by title for UI/CLI listing
+			// Stable sort by title; the web (docs-tree) applies the build-workflow stage ordering for display.
 			return docs.sort((a, b) => a.title.localeCompare(b.title));
 		} catch (error) {
 			recordUnreadableDirectory(error, unreadable);

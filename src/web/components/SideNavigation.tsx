@@ -478,7 +478,6 @@ const SideNavigation = memo(function SideNavigation({
 
 	// Always show full lists in their sections, search results are separate
 	const filteredDocs = docs;
-	const filteredDecisions = decisions;
 
 	const { tree, ungroupedDocs } = useMemo(() => buildDocsTree(filteredDocs), [filteredDocs]);
 
@@ -864,66 +863,23 @@ const SideNavigation = memo(function SideNavigation({
 						{/* Divider between Documents and Decisions */}
 						<div className="mx-4 my-2 border-t border-gray-200 dark:border-gray-700"></div>
 
-						{/* Decisions Section */}
-						<div className="px-4 py-4">
-							<div className="flex items-center justify-between mb-4">
-									<div className="flex items-center space-x-3">
-										<button
-											onClick={() => setIsDecisionsCollapsed(!isDecisionsCollapsed)}
-											className="p-1 text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors duration-200"
-											title={isDecisionsCollapsed ? "Expand decisions" : "Collapse decisions"}
-										>
-											{isDecisionsCollapsed ? <Icons.ChevronRight /> : <Icons.ChevronDown />}
-									</button>
-									<span className="text-gray-500 dark:text-gray-400"><Icons.Decision /></span>
-									<span className="text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 whitespace-nowrap">
-										Decisions (<NavigationCount count={decisions.length} isLoading={isLoading} error={error} label="decision" />)
-									</span>
-								</div>
-								{/* Temporarily hidden - decisions editing not ready */}
-								{/*{false && (*/}
-								{/*	<button*/}
-								{/*		onClick={handleCreateDecision}*/}
-								{/*		className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors cursor-pointer"*/}
-								{/*		title="Create new decision"*/}
-								{/*	>*/}
-								{/*		<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">*/}
-								{/*			<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />*/}
-								{/*			<circle cx="12" cy="12" r="10" />*/}
-								{/*		</svg>*/}
-								{/*	</button>*/}
-								{/*)}*/}
-							</div>
-							
-							{/* Decision List */}
-							{!isDecisionsCollapsed && (
-								<div className="space-y-1">
-									{isLoading ? (
-										<LoadingPhase className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400" />
-									) : error ? (
-										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">Decisions unavailable</p>
-									) : filteredDecisions.length === 0 ? (
-										<p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No decisions</p>
-									) : (
-										filteredDecisions.map((decision) => (
-											<NavLink
-												key={decision.id}
-												to={`/decisions/${stripIdPrefix(decision.id)}/${sanitizeUrlTitle(decision.title)}`}
-												className={({ isActive }) =>
-													`flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
-														isActive
-															? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-medium'
-															: 'text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
-													}`
-												}
-											>
-												<span className="text-gray-500 dark:text-gray-500"><Icons.DecisionPage /></span>
-												<span className="truncate">{decision.title}</span>
-											</NavLink>
-										))
-									)}
-								</div>
-							)}
+						{/* Decisions Section — one page (card lineage), not per-decision lines */}
+						<div className="px-4 py-3">
+							<NavLink
+								to="/decisions"
+								className={({ isActive }) =>
+									`flex items-center space-x-3 px-2 py-2 rounded-lg transition-colors duration-200 ${
+										isActive
+											? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400'
+											: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+									}`
+								}
+							>
+								<span className="text-gray-500 dark:text-gray-400"><Icons.Decision /></span>
+								<span className="text-sm font-semibold uppercase tracking-wider whitespace-nowrap">
+									Decisions (<NavigationCount count={decisions.length} isLoading={isLoading} error={error} label="decision" />)
+								</span>
+							</NavLink>
 						</div>
 					</>
 				)}
