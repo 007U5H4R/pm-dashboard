@@ -66,7 +66,6 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 	const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 	const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
 	const [showAllUnassigned, setShowAllUnassigned] = useState(false);
-	const [showCompleted, setShowCompleted] = useState(false);
 	const [archivingMilestoneKey, setArchivingMilestoneKey] = useState<string | null>(null);
 	const [savingMilestoneKey, setSavingMilestoneKey] = useState<string | null>(null);
 	const [removingMilestoneKey, setRemovingMilestoneKey] = useState<string | null>(null);
@@ -124,8 +123,9 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 	}, [buckets, isSearchActive, searchQueryTrimmed, statuses]);
 
 	// Separate buckets into categories and sort by ID ascending
-	const { unassignedBucket, activeMilestones, completedMilestones } = useMemo(() => {
-		// Sort milestones by ID ascending (oldest first - preserves the natural phase/sequence order)
+	const { unassignedBucket, orderedMilestones } = useMemo(() => {
+		// Sort milestones by ID ascending (oldest first) so the ledger reads as one phase sequence —
+		// completed and in-progress milestones interleave in order rather than splitting into sections.
 		const sortByIdAsc = (a: MilestoneBucket, b: MilestoneBucket) => {
 			const aMilestone = a.milestone ?? "";
 			const bMilestone = b.milestone ?? "";
@@ -137,19 +137,11 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 		};
 
 		const unassigned = visibleBuckets.find((b) => b.isNoMilestone);
-		const activeWithTasks = visibleBuckets.filter((b) => !b.isNoMilestone && !b.isCompleted && b.total > 0);
-		const empty = visibleBuckets.filter((b) => !b.isNoMilestone && !b.isCompleted && b.total === 0);
-		const completed = visibleBuckets.filter((b) => !b.isNoMilestone && b.isCompleted);
-
-		// Sort each group by ID ascending, then combine (active with tasks first, then empty)
-		const sortedActive = [...activeWithTasks].sort(sortByIdAsc);
-		const sortedEmpty = [...empty].sort(sortByIdAsc);
-		const sortedCompleted = [...completed].sort(sortByIdAsc);
+		const milestones = visibleBuckets.filter((b) => !b.isNoMilestone);
 
 		return {
 			unassignedBucket: unassigned,
-			activeMilestones: [...sortedActive, ...sortedEmpty],
-			completedMilestones: sortedCompleted,
+			orderedMilestones: [...milestones].sort(sortByIdAsc),
 		};
 	}, [visibleBuckets]);
 	const removeReassignOptions = useMemo(() => {
@@ -808,7 +800,7 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 
 	const hasSearchMatches = visibleBuckets.some((bucket) => bucket.total > 0);
 	const showSearchNoMatchHint = isSearchActive && !hasSearchMatches;
-	const noMilestones = !isSearchActive && activeMilestones.length === 0 && completedMilestones.length === 0;
+	const noMilestones = !isSearchActive && orderedMilestones.length === 0;
 	const canReassignRemovedMilestone = removeReassignOptions.length > 0;
 
 	return (
@@ -904,44 +896,10 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 			{/* Unassigned tasks */}
 			{renderUnassignedSection()}
 
-			{/* Active milestones */}
-			{activeMilestones.length > 0 && (
+			{/* All milestones — one ledger panel, completed and in-progress interleaved in sequence */}
+			{orderedMilestones.length > 0 && (
 				<div className="excali-box overflow-hidden">
-						{activeMilestones.map((bucket, index) => renderMilestoneRow(bucket, index + 1))}
-				</div>
-			)}
-
-			{/* Completed milestones */}
-			{completedMilestones.length > 0 && (
-				<div className="mt-8">
-					{isSearchActive ? (
-						<div className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-							<span>Completed milestones</span>
-							<span className="text-xs text-gray-500 dark:text-gray-500">({completedMilestones.length})</span>
-						</div>
-					) : (
-						<button
-							type="button"
-							onClick={() => setShowCompleted((value) => !value)}
-							className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-						>
-							<span>Completed milestones</span>
-							<span className="text-xs text-gray-500 dark:text-gray-500">({completedMilestones.length})</span>
-							<svg
-								className={`w-4 h-4 transition-transform ${showCompleted ? "rotate-180" : ""}`}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-							</svg>
-						</button>
-					)}
-					{(isSearchActive || showCompleted) && (
-						<div className="mt-4 excali-box overflow-hidden">
-								{completedMilestones.map((bucket, index) => renderMilestoneRow(bucket, index + 1))}
-						</div>
-					)}
+					{orderedMilestones.map((bucket, index) => renderMilestoneRow(bucket, index + 1))}
 				</div>
 			)}
 
