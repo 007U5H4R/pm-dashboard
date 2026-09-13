@@ -798,6 +798,28 @@ const SideNavigation = memo(function SideNavigation({
 						{/* Divider between Tasks and Documents */}
 						<div className="mx-4 my-2 border-t border-gray-200 dark:border-gray-700"></div>
 						
+						{/* Decisions Section — one page (card lineage), not per-decision lines */}
+						<div className="px-4 py-3">
+							<NavLink
+								to="/decisions"
+								className={({ isActive }) =>
+									`flex items-center space-x-3 px-2 py-2 rounded-lg transition-colors duration-200 ${
+										isActive
+											? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400'
+											: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+									}`
+								}
+							>
+								<span className="text-gray-500 dark:text-gray-400"><Icons.Decision /></span>
+								<span className="text-sm font-semibold uppercase tracking-wider whitespace-nowrap">
+									Decisions (<NavigationCount count={decisions.length} isLoading={isLoading} error={error} label="decision" />)
+								</span>
+							</NavLink>
+						</div>
+
+						{/* Divider between Documents and Decisions */}
+						<div className="mx-4 my-2 border-t border-gray-200 dark:border-gray-700"></div>
+
 						{/* Documents Section */}
 						<div className="px-4 py-4">
 							<div className="flex items-center justify-between mb-4">
@@ -858,28 +880,6 @@ const SideNavigation = memo(function SideNavigation({
 									)}
 								</div>
 							)}
-						</div>
-
-						{/* Divider between Documents and Decisions */}
-						<div className="mx-4 my-2 border-t border-gray-200 dark:border-gray-700"></div>
-
-						{/* Decisions Section — one page (card lineage), not per-decision lines */}
-						<div className="px-4 py-3">
-							<NavLink
-								to="/decisions"
-								className={({ isActive }) =>
-									`flex items-center space-x-3 px-2 py-2 rounded-lg transition-colors duration-200 ${
-										isActive
-											? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400'
-											: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-									}`
-								}
-							>
-								<span className="text-gray-500 dark:text-gray-400"><Icons.Decision /></span>
-								<span className="text-sm font-semibold uppercase tracking-wider whitespace-nowrap">
-									Decisions (<NavigationCount count={decisions.length} isLoading={isLoading} error={error} label="decision" />)
-								</span>
-							</NavLink>
 						</div>
 					</>
 				)}

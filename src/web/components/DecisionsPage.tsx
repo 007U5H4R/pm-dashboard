@@ -58,11 +58,17 @@ const DecisionsPage: React.FC<DecisionsPageProps> = ({ decisions, projectName })
 							const status = decision.status?.toLowerCase() ?? 'accepted';
 							return (
 								<li key={decision.id} className="relative mb-6 ml-8 last:mb-0">
+									{/* Hand-drawn number node: a wobbly ink-outlined badge (shared #hand-rough filter),
+									    with the digit kept crisp on top so it stays legible. */}
 									<span
-										className="absolute -left-[46px] top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-blue-500 text-xs font-semibold text-white shadow dark:border-gray-900"
+										className="absolute -left-[47px] top-3 flex h-7 w-7 items-center justify-center"
 										aria-hidden="true"
 									>
-										{index + 1}
+										<span
+											className="absolute inset-0 border-2 border-gray-800 bg-blue-500 dark:border-gray-200"
+											style={{ borderRadius: '47% 53% 48% 52% / 52% 47% 53% 48%', filter: 'url(#hand-rough)' }}
+										/>
+										<span className="relative text-xs font-bold text-white">{index + 1}</span>
 									</span>
 									<div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors duration-200 dark:border-gray-700 dark:bg-gray-800">
 										<div className="mb-3 flex items-start justify-between gap-4">
