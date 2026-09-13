@@ -712,7 +712,8 @@ const TaskList: React.FC<TaskListProps> = ({
 				<div className="flex items-center justify-between gap-3">
 						<h1 className="text-2xl font-bold text-gray-900 dark:text-white">All Tasks</h1>
 						<button
-							className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-gray-900 transition-colors duration-200"
+							className="inline-flex items-center gap-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold border-2 border-gray-800 dark:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 dark:focus:ring-offset-gray-900 transition-colors"
+							style={{ borderRadius: "12px 10px 13px 9px / 9px 13px 10px 12px" }}
 							onClick={onNewTask}
 						>
 							+ New Task
