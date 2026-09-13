@@ -15,6 +15,14 @@ const STATUS_STYLES: Record<string, string> = {
 	superseded: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
 };
 
+// The lineage node is filled by the decision's status (Option-B roadmap style).
+const STATUS_NODE: Record<string, string> = {
+	accepted: '#10b981',
+	rejected: '#ef4444',
+	proposed: '#f59e0b',
+	superseded: '#94a3b8',
+};
+
 // Compose the card body from whatever fields the decision carries. A decision-log entry keeps its
 // whole body in `decision`; a native decision splits Context / Decision / Consequences / Alternatives.
 const decisionMarkdown = (d: Decision): string => {
@@ -32,10 +40,18 @@ const DecisionsPage: React.FC<DecisionsPageProps> = ({ decisions, projectName })
 	const { theme } = useTheme();
 
 	return (
-		<div className="min-h-full">
+		<div className="excali min-h-full">
+			{/* Hand-drawn ink filter (same feTurbulence trick as Statistics) so .excali-box cards
+			    render with the wobbly drawn-by-hand outline. */}
+			<svg width="0" height="0" className="absolute" aria-hidden="true">
+				<filter id="stat-rough" x="-6%" y="-6%" width="112%" height="112%">
+					<feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves={2} seed={5} result="noise" />
+					<feDisplacementMap in="SourceGraphic" in2="noise" scale={3} xChannelSelector="R" yChannelSelector="G" />
+				</filter>
+			</svg>
 			<div className="max-w-4xl mx-auto p-6">
 				<div className="mb-6">
-					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+					<h1 className="excali-hand text-3xl font-bold text-gray-900 dark:text-gray-100">
 						{projectName ? `${projectName} — Decisions` : 'Decisions'}
 					</h1>
 					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -65,12 +81,16 @@ const DecisionsPage: React.FC<DecisionsPageProps> = ({ decisions, projectName })
 										aria-hidden="true"
 									>
 										<span
-											className="absolute inset-0 border-2 border-gray-800 bg-blue-500 dark:border-gray-200"
-											style={{ borderRadius: '47% 53% 48% 52% / 52% 47% 53% 48%', filter: 'url(#hand-rough)' }}
+											className="absolute inset-0 border-2 border-gray-800 dark:border-gray-200"
+											style={{
+												borderRadius: '47% 53% 48% 52% / 52% 47% 53% 48%',
+												backgroundColor: STATUS_NODE[status] ?? STATUS_NODE.superseded,
+												filter: 'url(#hand-rough)',
+											}}
 										/>
 										<span className="relative text-xs font-bold text-white">{index + 1}</span>
 									</span>
-									<div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors duration-200 dark:border-gray-700 dark:bg-gray-800">
+									<div className="excali-box p-5 transition-colors duration-200">
 										<div className="mb-3 flex items-start justify-between gap-4">
 											<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{decision.title}</h2>
 											<span
