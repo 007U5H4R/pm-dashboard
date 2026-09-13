@@ -340,6 +340,8 @@ const ARTIFACT_SCAN_DENYLIST = new Set([
 	"license.md",
 	"code_of_conduct.md",
 	"security.md",
+	// The decision log feeds the Decisions section (see listProjectDecisions), not Artifacts.
+	"decisions.md",
 ]);
 // Subfolders (relative to the project root) that hold presentation/quality documents worth surfacing.
 // Kept deliberately narrow: `decks/` holds pitch decks and `evals/` holds the evaluation plan, scorers'
@@ -395,6 +397,73 @@ async function listProjectArtifacts(projectRoot: string, skipTitles: Set<string>
 	}
 
 	return docs;
+}
+
+/**
+ * Parse a project-root `decisions.md` decision log into individual Decision records. Each level-2
+ * (`## `) section is one decision: the heading is the title, an optional Status/`**Status:**` line
+ * (or a trailing "(accepted)") sets the status (default accepted), and the section body becomes the
+ * rendered content. These are read-only mirrors — the app surfaces them but doesn't own the file — so
+ * onboarded projects that keep a single decision log get it in the Decisions section without creating
+ * a native `decision-*.md` record per decision. Ids encode the document order so the list stays in
+ * log order (`decision-log-001-…`).
+ */
+function parseDecisionLog(markdown: string, modifiedIso: string): Decision[] {
+	const src = markdown.replace(/\r\n/g, "\n");
+	// Split at each level-2 heading; the leading block (title/intro, no `## `) is dropped.
+	const sections = src.split(/\n(?=## )/);
+	const decisions: Decision[] = [];
+	let ordinal = 0;
+	for (const section of sections) {
+		// Capture the whole heading line (greedy to end of line — a non-greedy match stops at the
+		// first character), then the body is everything after it.
+		const headingMatch = section.match(/^##[ \t]+([^\n]+)\n?/);
+		if (!headingMatch?.[1]) continue;
+		let title = headingMatch[1].trim();
+		const body = section.slice(headingMatch[0].length).trim();
+		ordinal += 1;
+		// Status comes from a trailing "— accepted"/"(rejected)" on the heading, or a "Status:" line in
+		// the body; default accepted. A recognized trailing token is stripped from the displayed title.
+		const statuses = "proposed|accepted|rejected|superseded";
+		const headingStatus = title.match(new RegExp(`[—\\-(\\[]\\s*(${statuses})\\s*[)\\]]?\\s*$`, "i"));
+		const bodyStatus = body.match(new RegExp(`(?:^|\\n)\\**status\\**\\s*[:.]?\\s*(${statuses})`, "i"));
+		const status = (headingStatus?.[1] ?? bodyStatus?.[1] ?? "accepted").toLowerCase() as Decision["status"];
+		if (headingStatus)
+			title = title
+				.slice(0, headingStatus.index)
+				.replace(/[\s—-]+$/, "")
+				.trim();
+		const slug =
+			title
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, "-")
+				.replace(/^-+|-+$/g, "")
+				.slice(0, 60) || "decision";
+		decisions.push({
+			id: `decision-log-${String(ordinal).padStart(3, "0")}-${slug}`,
+			title,
+			date: modifiedIso,
+			status,
+			context: "",
+			decision: body,
+			consequences: "",
+			rawContent: body,
+			path: "decisions.md",
+		});
+	}
+	return decisions;
+}
+
+/** Read a project-root `decisions.md` (if present) as read-only Decision-log entries. */
+async function listProjectDecisions(projectRoot: string): Promise<Decision[]> {
+	try {
+		const file = Bun.file(join(projectRoot, "decisions.md"));
+		if (!(await file.exists())) return [];
+		const modifiedIso = file.lastModified ? new Date(file.lastModified).toISOString() : "";
+		return parseDecisionLog(await file.text(), modifiedIso);
+	} catch {
+		return [];
+	}
 }
 
 /**
@@ -1726,6 +1795,13 @@ export class FileSystem {
 					// One malformed file must not hide every other decision from lookups.
 					unreadable?.push(file);
 				}
+			}
+			// Also surface a project-root `decisions.md` decision log (read-only), so a project that
+			// keeps one consolidated log shows up in the Decisions section without per-decision records.
+			const projectRoot = dirname(dirname(decisionsDir));
+			const existingIds = new Set(decisions.map((d) => d.id));
+			for (const logged of await listProjectDecisions(projectRoot)) {
+				if (!existingIds.has(logged.id)) decisions.push(logged);
 			}
 			return sortByTaskId(decisions);
 		} catch (error) {
