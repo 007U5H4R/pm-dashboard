@@ -666,7 +666,10 @@ const SideNavigation = memo(function SideNavigation({
 
 				{!isCollapsed && (
 					<div className="px-4 space-y-1">
-						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">PM Tools</p>
+						<div className="flex items-center space-x-3 px-3 pt-3 pb-2">
+							<span className="text-gray-500 dark:text-gray-400"><Icons.Board /></span>
+							<span className="text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 whitespace-nowrap">PM Tools</span>
+						</div>
 
 						{/* Board Navigation */}
 						<NavLink
@@ -728,7 +731,10 @@ const SideNavigation = memo(function SideNavigation({
 							<span className="ml-3 text-sm font-medium">Statistics</span>
 						</NavLink>
 
-						<p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-500">Project Details</p>
+						<div className="flex items-center space-x-3 px-3 pt-3 pb-2">
+							<span className="text-gray-500 dark:text-gray-400"><Icons.Folder /></span>
+							<span className="text-sm font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 whitespace-nowrap">Project Details</span>
+						</div>
 
 						{/* Tasks Navigation */}
 						<NavLink
