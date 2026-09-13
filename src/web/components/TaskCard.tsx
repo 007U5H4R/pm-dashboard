@@ -378,9 +378,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
               className="flex w-full items-center justify-between gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
               aria-expanded={showSubtasks}
             >
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 whitespace-nowrap">
                 <svg
-                  className={`w-3 h-3 transition-transform duration-150 ${showSubtasks ? 'rotate-90' : ''}`}
+                  className={`w-3 h-3 shrink-0 transition-transform duration-150 ${showSubtasks ? 'rotate-90' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -389,7 +389,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 </svg>
                 {children.length} {children.length === 1 ? 'subtask' : 'subtasks'}
               </span>
-              <span className="font-medium tabular-nums">{doneChildren}/{children.length} done</span>
+              <span className="font-medium tabular-nums whitespace-nowrap">{doneChildren}/{children.length} done</span>
             </button>
             {children.length > 0 && (
               <ProgressMeter segments={subtaskSegments} heightClass="h-2.5" className="mt-1.5 w-full" />
