@@ -2,6 +2,7 @@ import React from 'react';
 import { type Task } from '../../types';
 import { formatPriorityLabel } from '../../utils/priority-config';
 import AcceptanceCriteriaProgress, { getAcceptanceCriteriaProgressCounts } from './AcceptanceCriteriaProgress';
+import ProgressMeter from './ProgressMeter';
 import StoredDate from './StoredDate';
 import ProjectBadge from './ProjectBadge';
 import TaskTypeBadge from './TaskTypeBadge';
@@ -126,6 +127,18 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
   const children = childTasks ?? [];
   const doneChildren = children.filter(child => child.status === 'Done').length;
+  const inProgressChildren = children.filter(
+    child => child.status === 'In Progress' || child.status === 'In Review'
+  ).length;
+  const todoChildren = children.length - doneChildren - inProgressChildren;
+  // Segment the subtask bar by status (done/in-progress/to-do) so it matches the milestone meter.
+  const subtaskSegments = children.length > 0
+    ? [
+        { value: (doneChildren / children.length) * 100, color: '#10b981' },
+        { value: (inProgressChildren / children.length) * 100, color: '#3b82f6' },
+        { value: (todoChildren / children.length) * 100, color: '#6b7280' },
+      ]
+    : [];
 
   // A ticket with no subtasks still shows progress from its own status (Done = full green bar).
   const ownStatusPercent = (() => {
@@ -379,18 +392,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               <span className="font-medium tabular-nums">{doneChildren}/{children.length} done</span>
             </button>
             {children.length > 0 && (
-              <div
-                className="mt-1.5 h-2.5 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
-                style={{ borderRadius: '6px 5px 7px 5px / 5px 7px 5px 6px', filter: 'url(#hand-rough)' }}
-              >
-                <div
-                  className="h-full transition-all duration-300"
-                  style={{
-                    width: `${Math.round((doneChildren / children.length) * 100)}%`,
-                    backgroundColor: '#10b981',
-                  }}
-                />
-              </div>
+              <ProgressMeter segments={subtaskSegments} heightClass="h-2.5" className="mt-1.5 w-full" />
             )}
             {showSubtasks && (
               <ul className="mt-1.5 space-y-1">
@@ -424,18 +426,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Status progress bar for tickets without subtasks (own status drives the fill) */}
         {children.length === 0 && (
-          <div
-            className="mt-2 h-2.5 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
-            style={{ borderRadius: '6px 5px 7px 5px / 5px 7px 5px 6px', filter: 'url(#hand-rough)' }}
-          >
-            <div
-              className="h-full transition-all duration-300"
-              style={{
-                width: `${ownStatusPercent}%`,
-                backgroundColor: '#10b981',
-              }}
-            />
-          </div>
+          <ProgressMeter
+            segments={[{ value: ownStatusPercent, color: '#10b981' }]}
+            heightClass="h-2.5"
+            className="mt-2 w-full"
+          />
         )}
 
         {/* Footer with date */}

@@ -4,6 +4,7 @@ import type { TaskStatistics } from '../../core/statistics';
 import type { Task } from '../../types';
 import { formatPriorityLabel } from '../../utils/priority-config';
 import LoadingSpinner from './LoadingSpinner';
+import ProgressMeter from './ProgressMeter';
 import StoredDate from './StoredDate';
 
 interface StatisticsData extends Omit<TaskStatistics, 'statusCounts' | 'priorityCounts'> {
@@ -376,12 +377,11 @@ const Statistics: React.FC<StatisticsProps> = ({
 			{/* Progress Bar */}
 			<div className="excali-box p-6">
 				<h2 className="excali-hand text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Overall Progress</h2>
-				<div className="excali-track w-full h-5 mb-2">
-					<div
-						className="excali-fill transition-all duration-300"
-						style={{ width: `${statistics.completionPercentage}%`, backgroundColor: '#10b981' }}
-					></div>
-				</div>
+				<ProgressMeter
+					segments={[{ value: statistics.completionPercentage, color: '#10b981' }]}
+					heightClass="h-5"
+					className="w-full mb-2"
+				/>
 				<div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
 					<span>{statistics.completedTasks} completed</span>
 					<span>{statistics.totalTasks - statistics.completedTasks} remaining</span>
@@ -411,12 +411,11 @@ const Statistics: React.FC<StatisticsProps> = ({
 											{Math.round((count / statistics.totalTasks) * 100)}%
 										</div>
 									</div>
-									<div className="excali-track w-16 h-2.5">
-										<div
-											className="excali-fill transition-all duration-300"
-											style={{ width: `${(count / statistics.totalTasks) * 100}%`, backgroundColor: '#6366f1' }}
-										></div>
-									</div>
+									<ProgressMeter
+										segments={[{ value: (count / statistics.totalTasks) * 100, color: '#6366f1' }]}
+										heightClass="h-2.5"
+										className="w-16"
+									/>
 								</div>
 							</div>
 						))}
@@ -442,12 +441,11 @@ const Statistics: React.FC<StatisticsProps> = ({
 											{Math.round((count / statistics.totalTasks) * 100)}%
 										</div>
 									</div>
-									<div className="excali-track w-16 h-2.5">
-										<div
-											className="excali-fill transition-all duration-300"
-											style={{ width: `${(count / statistics.totalTasks) * 100}%`, backgroundColor: '#f59e0b' }}
-										></div>
-									</div>
+									<ProgressMeter
+										segments={[{ value: (count / statistics.totalTasks) * 100, color: '#f59e0b' }]}
+										heightClass="h-2.5"
+										className="w-16"
+									/>
 								</div>
 							</div>
 						))}

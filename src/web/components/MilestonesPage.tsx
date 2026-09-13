@@ -6,6 +6,7 @@ import { type Milestone, type MilestoneBucket, type Task } from "../../types";
 import { createTaskSearchIndex } from "../../utils/task-search";
 import MilestoneTaskRow from "./MilestoneTaskRow";
 import Modal from "./Modal";
+import ProgressMeter from "./ProgressMeter";
 import StoredDate from "./StoredDate";
 
 type RemoveTaskHandling = "clear" | "reassign";
@@ -475,24 +476,12 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 	const renderStatusMeter = (bucket: MilestoneBucket) => {
 		const segments = statuses
 			.filter((status) => (bucket.statusCounts[status] ?? 0) > 0)
-			.sort((a, b) => statusMeterRank(a) - statusMeterRank(b));
-		return (
-			<div
-				className="relative flex h-3 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
-				style={{ borderRadius: "999px", filter: "url(#hand-rough)" }}
-			>
-				{segments.map((status) => (
-					<div
-						key={status}
-						className="h-full transition-all duration-300"
-						style={{
-							width: `${((bucket.statusCounts[status] ?? 0) / bucket.total) * 100}%`,
-							backgroundColor: getStatusDotColor(status),
-						}}
-					/>
-				))}
-			</div>
-		);
+			.sort((a, b) => statusMeterRank(a) - statusMeterRank(b))
+			.map((status) => ({
+				value: ((bucket.statusCounts[status] ?? 0) / bucket.total) * 100,
+				color: getStatusDotColor(status),
+			}));
+		return <ProgressMeter segments={segments} className="w-full" />;
 	};
 
 	// Render one milestone as a compact ledger row (also a drop target); expand it for actions + tasks.
