@@ -9,7 +9,7 @@ interface WorkflowPageProps {
   projectName: string;
 }
 
-/** The 10-stage build workflow rendered on the shared Gantt UI. Stage derivation lives in
+/** The 12-stage build workflow rendered on the shared Gantt UI. Stage derivation lives in
  *  ../lib/workflow-stages so the Kanban board's Workflow view stays in sync with this page. */
 const WorkflowPage: React.FC<WorkflowPageProps> = ({ tasks, docs, projectName }) => {
   const { stageTasks, percentById } = React.useMemo(

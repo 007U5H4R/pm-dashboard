@@ -8,23 +8,27 @@ const UNIT_MS = 86_400_000;
  *  Kanban columns when the board is in Workflow view. */
 export const WORKFLOW_STAGE_STATUSES = ["To Do", "In Progress", "Done"] as const;
 
-/** The 10-stage build workflow (global CLAUDE.md build-workflow.md). Stages 1–5 are marked done when
- * their artifact document exists; Execution reflects ticket completion; the review/deploy stages have
- * no data signal yet, so they read as not-started until marked. */
+/** The 12-stage build workflow (global CLAUDE.md build-workflow.md). Stages 1–6 are marked done when
+ * their artifact document exists; Execution reflects ticket completion; the review/deploy/feedback
+ * stages have no data signal yet, so they read as not-started until marked. */
 // `weight` = a stage's estimated duration as a fraction of the Execution stage. Execution is the anchor
 // (its duration comes from the real ticket schedule); every other stage is estimated from it, so the
 // estimates scale automatically for any project — new or old — from that project's own execution length.
+// docMatch patterns are kept specific so a stage's artifact doesn't also satisfy another stage's match
+// (e.g. Technical Planning must not match "Evaluation Plan").
 export const STAGES: Array<{ name: string; docMatch?: RegExp; execution?: boolean; weight: number }> = [
 	{ name: "Product Discovery", docMatch: /discovery/i, weight: 0.15 },
 	{ name: "Solution Design", docMatch: /solution/i, weight: 0.15 },
-	{ name: "UI/UX Design", docMatch: /design/i, weight: 0.2 },
+	{ name: "Evaluation Design", docMatch: /evaluation/i, weight: 0.15 },
+	{ name: "UI/UX Design", docMatch: /\bdesign\b/i, weight: 0.2 },
 	{ name: "Problem Breakdown", docMatch: /ticket/i, weight: 0.3 },
-	{ name: "Technical Planning", docMatch: /implementation|plan/i, weight: 0.4 },
+	{ name: "Technical Planning", docMatch: /technical.plan|implementation.plan/i, weight: 0.4 },
 	{ name: "Execution", execution: true, weight: 1 },
 	{ name: "Design Critique", weight: 0.25 },
-	{ name: "Code Review", weight: 0.3 },
+	{ name: "Code Review + Test & Eval", weight: 0.3 },
 	{ name: "Security Review", weight: 0.2 },
-	{ name: "Deployment", weight: 0.1 },
+	{ name: "Deployment + Monitoring", weight: 0.15 },
+	{ name: "Feedback & Regression Eval", weight: 0.15 },
 ];
 
 export interface WorkflowStages {
@@ -35,7 +39,7 @@ export interface WorkflowStages {
 }
 
 /**
- * Derive the 10 build-workflow stages as synthetic tasks from the project's real tasks + docs.
+ * Derive the 12 build-workflow stages as synthetic tasks from the project's real tasks + docs.
  * Shared by the Workflow Gantt page and the Kanban board's Workflow view so both stay in sync.
  */
 export function computeWorkflowStages(tasks: Task[], docs: Document[]): WorkflowStages {
@@ -92,5 +96,6 @@ export function computeWorkflowStages(tasks: Task[], docs: Document[]): Workflow
 		} as Task;
 	});
 
-	return { stageTasks, percentById: { "STAGE-6": execPercent } };
+	// Execution is stage 7 of the 12-stage chain.
+	return { stageTasks, percentById: { "STAGE-7": execPercent } };
 }

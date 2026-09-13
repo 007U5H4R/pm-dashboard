@@ -341,10 +341,11 @@ const ARTIFACT_SCAN_DENYLIST = new Set([
 	"code_of_conduct.md",
 	"security.md",
 ]);
-// Subfolders (relative to the project root) that hold presentation documents worth surfacing. Kept
-// deliberately narrow: `decks/` holds pitch decks, whereas a `docs/` tree is often execution scratch
-// (per-task briefs/reports) that would flood the Artifacts list, so it is not auto-scanned.
-const ARTIFACT_SCAN_SUBDIRS = ["decks"] as const;
+// Subfolders (relative to the project root) that hold presentation/quality documents worth surfacing.
+// Kept deliberately narrow: `decks/` holds pitch decks and `evals/` holds the evaluation plan, scorers'
+// docs, and versioned eval reports (build-workflow.md's /evals package). A general `docs/` tree is NOT
+// auto-scanned — it's often execution scratch (per-task briefs/reports) that would flood the list.
+const ARTIFACT_SCAN_SUBDIRS = ["decks", "evals"] as const;
 
 /**
  * Discover project-level documents that live outside backlog/docs — the build-workflow artifacts kept

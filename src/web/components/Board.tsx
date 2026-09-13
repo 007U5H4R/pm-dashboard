@@ -105,7 +105,7 @@ const Board: React.FC<BoardProps> = ({
       /* storage unavailable (private mode) — the choice just won't persist */
     }
   };
-  // Workflow view: the 10 build-workflow stages as read-only cards, grouped into their derived
+  // Workflow view: the 12 build-workflow stages as read-only cards, grouped into their derived
   // status column. Uses the same derivation as the Workflow Gantt page (shared helper).
   const workflowStages = useMemo(() => computeWorkflowStages(tasks, docs), [tasks, docs]);
   const workflowTasksByStatus = useMemo(() => {
@@ -762,7 +762,7 @@ const Board: React.FC<BoardProps> = ({
         )}
         <div className="flex flex-wrap items-center gap-3" role="toolbar" aria-label="Board view controls">
             {/* Execution / Workflow view toggle. Execution = the project's real tickets (default);
-                Workflow = the 10 build-workflow stages as read-only cards. */}
+                Workflow = the 12 build-workflow stages as read-only cards. */}
             <div
               className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0.5"
               role="group"
