@@ -377,6 +377,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               }}
               className="flex w-full items-center justify-between gap-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 px-2 py-1 text-[11px] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150"
               aria-expanded={showSubtasks}
+              aria-label={`${children.length} ${children.length === 1 ? 'subtask' : 'subtasks'}, ${doneChildren} done`}
             >
               <span className="flex items-center gap-1.5 whitespace-nowrap">
                 <svg
@@ -387,9 +388,22 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                {children.length} {children.length === 1 ? 'subtask' : 'subtasks'}
+                <span className="flex items-center gap-1" title={`${children.length} ${children.length === 1 ? 'subtask' : 'subtasks'}`}>
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+                  </svg>
+                  {children.length}
+                </span>
               </span>
-              <span className="font-medium tabular-nums whitespace-nowrap">{doneChildren}/{children.length} done</span>
+              <span
+                className="flex items-center gap-1 font-medium tabular-nums whitespace-nowrap"
+                title={`${doneChildren} of ${children.length} done`}
+              >
+                <svg className="w-3.5 h-3.5 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {doneChildren}/{children.length}
+              </span>
             </button>
             {children.length > 0 && (
               <ProgressMeter segments={subtaskSegments} heightClass="h-2.5" className="mt-1.5 w-full" />
