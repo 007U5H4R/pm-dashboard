@@ -104,13 +104,6 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 	);
 	const searchQueryTrimmed = searchQuery.trim();
 	const isSearchActive = searchQueryTrimmed.length > 0;
-	const defaultExpandedByBucketKey = useMemo(() => {
-		const map: Record<string, boolean> = {};
-		for (const bucket of buckets) {
-			map[bucket.key] = bucket.total > 0 && bucket.total <= 8;
-		}
-		return map;
-	}, [buckets]);
 	const visibleBuckets = useMemo(() => {
 		if (!isSearchActive) {
 			return buckets;
@@ -477,11 +470,44 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 
 	const safeIdSegment = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "-");
 
-	// Render a milestone card (drop target)
-	const renderMilestoneCard = (bucket: MilestoneBucket, isEmpty: boolean) => {
-		const progress = bucket.total > 0 ? Math.round((bucket.doneCount / bucket.total) * 100) : 0;
-		const defaultExpanded = defaultExpandedByBucketKey[bucket.key] ?? (bucket.total > 0 && bucket.total <= 8);
-		const isExpanded = expandedBuckets[bucket.key] ?? defaultExpanded;
+	// A Plane-style segmented status meter: one wobbly ink-outlined pill, a coloured segment per
+	// status, ordered most-complete first so the green grows from the left like a progress bar.
+	const statusMeterRank = (status: string) => {
+		const normalized = status.toLowerCase();
+		if (normalized.includes("done") || normalized.includes("complete")) return 0;
+		if (normalized.includes("review")) return 1;
+		if (normalized.includes("progress")) return 2;
+		return 3;
+	};
+
+	const renderStatusMeter = (bucket: MilestoneBucket) => {
+		const segments = statuses
+			.filter((status) => (bucket.statusCounts[status] ?? 0) > 0)
+			.sort((a, b) => statusMeterRank(a) - statusMeterRank(b));
+		return (
+			<div
+				className="relative flex h-3 w-full overflow-hidden border-2 border-gray-800 dark:border-gray-200 bg-transparent"
+				style={{ borderRadius: "999px", filter: "url(#hand-rough)" }}
+			>
+				{segments.map((status) => (
+					<div
+						key={status}
+						className="h-full transition-all duration-300"
+						style={{
+							width: `${((bucket.statusCounts[status] ?? 0) / bucket.total) * 100}%`,
+							backgroundColor: getStatusDotColor(status),
+						}}
+					/>
+				))}
+			</div>
+		);
+	};
+
+	// Render one milestone as a compact ledger row (also a drop target); expand it for actions + tasks.
+	const renderMilestoneRow = (bucket: MilestoneBucket, seq: number) => {
+		const isEmpty = bucket.total === 0;
+		const progress = isEmpty ? 0 : Math.round((bucket.doneCount / bucket.total) * 100);
+		const isExpanded = expandedBuckets[bucket.key] ?? false;
 		const listId = `milestone-${safeIdSegment(bucket.key)}`;
 		const sortedTasks = getSortedTasks(bucket.tasks);
 		const isDropTarget = dropTargetKey === bucket.key;
@@ -492,74 +518,107 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 		const milestoneEntity = allMilestoneEntities.find(
 			(milestone) => milestoneKey(milestone.id) === milestoneKey(bucket.milestone ?? ""),
 		);
+		// The sequence node echoes the Decisions-page lineage badge: complete = green, in-flight =
+		// amber, not-started = grey.
+		const nodeColor = bucket.isCompleted ? "#10b981" : isEmpty ? "#94a3b8" : "#d97706";
 
 		return (
 			<div
 				key={bucket.key}
-				className={`rounded-lg border-2 transition-all duration-200 ${
+				className={`border-b-2 border-dashed border-gray-200 dark:border-gray-700 last:border-b-0 transition-colors duration-200 ${
 					isDropTarget
-						? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.01]"
+						? "bg-amber-50 dark:bg-amber-900/15"
 						: isDragging
-						? "border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-						: "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+						? "bg-gray-50/60 dark:bg-gray-800/40"
+						: ""
 				}`}
 				onDragOver={(e) => handleDragOver(e, bucket.key)}
 				onDragLeave={handleDragLeave}
 				onDrop={(e) => handleDrop(e, bucket.milestone)}
 			>
-				<div className="px-5 py-4">
-					{/* Header row */}
-					<div className="flex items-center justify-between gap-4">
-						<div className="min-w-0">
-							<h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{bucket.label}</h3>
+				{/* Compact row — click to expand */}
+				<button
+					type="button"
+					aria-expanded={isExpanded}
+					aria-controls={listId}
+					onClick={() => setExpandedBuckets((c) => ({ ...c, [bucket.key]: !isExpanded }))}
+					className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50/70 dark:hover:bg-gray-700/30 transition-colors"
+				>
+					{/* Hand-drawn sequence node */}
+					<span className="relative flex h-7 w-7 shrink-0 items-center justify-center" aria-hidden="true">
+						<span
+							className="absolute inset-0 border-2 border-gray-800 dark:border-gray-200"
+							style={{
+								borderRadius: "47% 53% 48% 52% / 52% 47% 53% 48%",
+								backgroundColor: nodeColor,
+								filter: "url(#hand-rough)",
+							}}
+						/>
+						<span className="relative text-xs font-bold text-white">{seq}</span>
+					</span>
+
+					{/* Name + meta + meter */}
+					<span className="min-w-0 flex-1">
+						<span className="excali-hand block truncate text-base font-bold text-gray-900 dark:text-gray-100">
+							{bucket.label}
+						</span>
+						<span className="mt-0.5 block truncate text-xs text-gray-500 dark:text-gray-400">
+							{bucket.milestone ? `${bucket.milestone.toUpperCase()} · ` : ""}
+							{isEmpty ? "No tasks" : `${bucket.total} task${bucket.total === 1 ? "" : "s"}`}
 							{milestoneEntity?.dueDate && (
-								<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-									Due: <StoredDate value={milestoneEntity.dueDate} dateFormat={dateFormat} />
-								</p>
+								<>
+									{" · Due "}
+									<StoredDate value={milestoneEntity.dueDate} dateFormat={dateFormat} />
+								</>
 							)}
-						</div>
-						{isEmpty ? (
-							<span className="text-sm text-gray-500 dark:text-gray-500">
-								{isDragging ? "Drop here" : "No tasks"}
-							</span>
-						) : (
-							<div className="flex items-center gap-3">
-								<span className="text-sm text-gray-500 dark:text-gray-400">
-									{bucket.total} task{bucket.total === 1 ? "" : "s"}
-								</span>
-								<span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-									{progress}%
-								</span>
+						</span>
+						<span className="mt-2 block">{renderStatusMeter(bucket)}</span>
+					</span>
+
+					{/* Percentage */}
+					<span
+						className={`excali-hand shrink-0 text-xl font-bold tabular-nums ${
+							progress === 100
+								? "text-emerald-600 dark:text-emerald-400"
+								: "text-gray-700 dark:text-gray-200"
+						}`}
+					>
+						{isEmpty ? "—" : `${progress}%`}
+					</span>
+
+					{/* Chevron */}
+					<svg
+						className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+					</svg>
+				</button>
+
+				{/* Expanded: status chips + actions + task list */}
+				{isExpanded && (
+					<div id={listId} className="px-4 pb-4">
+						{!isEmpty && (
+							<div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+								{statuses.map((status) => {
+									const count = bucket.statusCounts[status] ?? 0;
+									if (count === 0) return null;
+									return (
+										<span
+											key={status}
+											className={`inline-flex items-center gap-1.5 ${getInlineStatusClass(status)}`}
+										>
+											<span className="h-2 w-2 rounded-full" style={{ backgroundColor: getStatusDotColor(status) }} />
+											{count} {status}
+										</span>
+									);
+								})}
 							</div>
 						)}
-					</div>
 
-					{/* Progress bar - only for non-empty */}
-					{!isEmpty && (
-						<div className="mt-3 w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-							<div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${progress}%` }} />
-						</div>
-					)}
-
-					{/* Status breakdown - only for non-empty */}
-					{!isEmpty && (
-						<div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-							{statuses.map((status) => {
-								const count = bucket.statusCounts[status] ?? 0;
-								if (count === 0) return null;
-								return (
-									<span key={status} className={`inline-flex items-center gap-1.5 ${getInlineStatusClass(status)}`}>
-										<span className="h-2 w-2 rounded-full" style={{ backgroundColor: getStatusDotColor(status) }} />
-										{count} {status}
-									</span>
-								);
-							})}
-						</div>
-					)}
-
-					{/* Actions */}
-					<div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-100 dark:border-gray-700 pt-4">
-						<div className="flex items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2">
 							<Link
 								to={`/?lane=milestone&milestone=${encodeURIComponent(bucket.milestone ?? "")}`}
 								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -584,9 +643,6 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 								disabled={isArchiving || isSavingMilestone || isRemoving}
 								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
 							>
-								<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-								</svg>
 								{isSavingMilestone ? "Saving..." : "Edit"}
 							</button>
 							<button
@@ -595,9 +651,6 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 								disabled={isArchiving || isSavingMilestone || isRemoving}
 								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors disabled:opacity-60"
 							>
-								<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3 0V5a2 2 0 012-2h0a2 2 0 012 2v2" />
-								</svg>
 								{isRemoving ? "Removing..." : "Remove"}
 							</button>
 							<button
@@ -606,32 +659,14 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 								disabled={isArchiving || isSavingMilestone || isRemoving}
 								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-60"
 							>
-								<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-								</svg>
 								{isArchiving ? "Archiving..." : "Archive"}
 							</button>
 						</div>
-						<button
-							type="button"
-							aria-expanded={isExpanded}
-							aria-controls={listId}
-							onClick={() => setExpandedBuckets((c) => ({ ...c, [bucket.key]: !isExpanded }))}
-							className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-						>
-							{isExpanded ? "Hide" : "Show"} tasks
-							<svg className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-							</svg>
-						</button>
-					</div>
 
-					{/* Task list */}
-					{isExpanded && !isEmpty && (
-						<div id={listId} className="mt-4 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
-							<div className="divide-y divide-gray-200 dark:divide-gray-700">
-								{sortedTasks.slice(0, 10).map((task) => {
-									return (
+						{!isEmpty && (
+							<div className="mt-3 rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+								<div className="divide-y divide-gray-200 dark:divide-gray-700">
+									{sortedTasks.slice(0, 10).map((task) => (
 										<MilestoneTaskRow
 											key={task.id}
 											task={task}
@@ -642,19 +677,27 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 											onDragStart={handleDragStart}
 											onDragEnd={handleDragEnd}
 										/>
-									);
-								})}
-							</div>
-							{sortedTasks.length > 10 && (
-								<div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
-									<Link to={`/tasks?milestone=${encodeURIComponent(bucket.milestone ?? "")}`} className="text-blue-600 dark:text-blue-400 hover:underline">
-										View all {sortedTasks.length} tasks →
-									</Link>
+									))}
 								</div>
-							)}
-						</div>
-					)}
-				</div>
+								{sortedTasks.length > 10 && (
+									<div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+										<Link
+											to={`/tasks?milestone=${encodeURIComponent(bucket.milestone ?? "")}`}
+											className="text-blue-600 dark:text-blue-400 hover:underline"
+										>
+											View all {sortedTasks.length} tasks →
+										</Link>
+									</div>
+								)}
+							</div>
+						)}
+						{isEmpty && (
+							<p className="mt-1 text-sm text-gray-500 dark:text-gray-500">
+								{isDragging ? "Drop a task here to add it to this milestone." : "No tasks yet — drag one here to assign it."}
+							</p>
+						)}
+					</div>
+				)}
 			</div>
 		);
 	};
@@ -769,11 +812,19 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 	const canReassignRemovedMilestone = removeReassignOptions.length > 0;
 
 	return (
-		<div className="page-shell transition-colors duration-200">
+		<div className="excali page-shell transition-colors duration-200">
+			{/* Hand-drawn ink filter (same feTurbulence trick as Statistics) so the wobbly
+			    milestone panels read as drawn-by-hand on this page too. */}
+			<svg width="0" height="0" className="absolute" aria-hidden="true">
+				<filter id="stat-rough" x="-6%" y="-6%" width="112%" height="112%">
+					<feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves={2} seed={5} result="noise" />
+					<feDisplacementMap in="SourceGraphic" in2="noise" scale={3} xChannelSelector="R" yChannelSelector="G" />
+				</filter>
+			</svg>
 			{/* Header */}
 			<div className="flex flex-wrap items-center justify-between gap-4 mb-6">
 				<div className="flex flex-wrap items-center gap-4">
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Milestones</h1>
+					<h1 className="excali-hand text-3xl font-bold text-gray-900 dark:text-white">Milestones</h1>
 					<div className="relative w-full min-w-[240px] max-w-[420px]">
 						<span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-500">
 							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -826,7 +877,8 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 					<button
 						type="button"
 						onClick={() => setShowAddModal(true)}
-						className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-gray-900 transition-colors"
+						className="inline-flex items-center gap-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold border-2 border-gray-800 dark:border-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-400 dark:focus:ring-offset-gray-900 transition-colors"
+							style={{ borderRadius: "12px 10px 13px 9px / 9px 13px 10px 12px" }}
 					>
 						+ Add milestone
 					</button>
@@ -854,8 +906,8 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 
 			{/* Active milestones */}
 			{activeMilestones.length > 0 && (
-				<div className="space-y-4">
-					{activeMilestones.map((bucket) => renderMilestoneCard(bucket, bucket.total === 0))}
+				<div className="excali-box overflow-hidden">
+						{activeMilestones.map((bucket, index) => renderMilestoneRow(bucket, index + 1))}
 				</div>
 			)}
 
@@ -886,8 +938,8 @@ const MilestonesPage: React.FC<MilestonesPageProps> = ({
 						</button>
 					)}
 					{(isSearchActive || showCompleted) && (
-						<div className="mt-4 space-y-4">
-							{completedMilestones.map((bucket) => renderMilestoneCard(bucket, false))}
+						<div className="mt-4 excali-box overflow-hidden">
+								{completedMilestones.map((bucket, index) => renderMilestoneRow(bucket, index + 1))}
 						</div>
 					)}
 				</div>
