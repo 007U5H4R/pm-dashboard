@@ -1,7 +1,7 @@
 import React from 'react';
 import { type Task } from '../../types';
 import { formatPriorityLabel } from '../../utils/priority-config';
-import AcceptanceCriteriaProgress, { getAcceptanceCriteriaProgressCounts } from './AcceptanceCriteriaProgress';
+import { getAcceptanceCriteriaProgressCounts } from './AcceptanceCriteriaProgress';
 import ProgressMeter from './ProgressMeter';
 import StoredDate from './StoredDate';
 import ProjectBadge from './ProjectBadge';
@@ -344,7 +344,6 @@ const TaskCard: React.FC<TaskCardProps> = ({
           {task.title}
         </h4>
 
-        <AcceptanceCriteriaProgress task={task} density="card" className="mt-2" />
 
         {/* Labels - limit to 3 */}
         {displayLabels.length > 0 && (

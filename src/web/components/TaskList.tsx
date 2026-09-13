@@ -20,7 +20,6 @@ import {
 } from "../../utils/priority-config.ts";
 import CleanupModal from "./CleanupModal";
 import StoredDate from "./StoredDate";
-import AcceptanceCriteriaProgress from "./AcceptanceCriteriaProgress";
 import LabelFilterDropdown from "./LabelFilterDropdown";
 import { SuccessToast } from "./SuccessToast";
 
@@ -905,7 +904,6 @@ const TaskList: React.FC<TaskListProps> = ({
 														</span>
 													)}
 												</div>
-												<AcceptanceCriteriaProgress task={task} density="list" className="mt-1" />
 												{task.dueDate && (
 													<div className="mt-1 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
 														Due: <StoredDate value={task.dueDate} dateFormat={dateFormat} />
