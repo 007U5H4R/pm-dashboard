@@ -37,7 +37,10 @@ const ProgressMeter: React.FC<ProgressMeterProps> = ({ segments, heightClass = "
 	return (
 		<div
 			className={`relative flex ${heightClass} overflow-hidden border-2 border-gray-800 bg-transparent dark:border-gray-200 ${className}`}
-			style={{ borderRadius: "999px", filter: "url(#hand-rough)" }}
+			// translateZ(0) promotes the bar to its own compositing layer so its #hand-rough SVG filter
+			// paints on first render. Without it, inside the masked/drop-shadowed ticket-notch card some
+			// GPUs only paint the filtered border after a repaint (e.g. on card hover).
+			style={{ borderRadius: "999px", filter: "url(#hand-rough)", transform: "translateZ(0)" }}
 			title={title}
 		>
 			{merged.map((seg) => (
