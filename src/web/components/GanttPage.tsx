@@ -3,6 +3,7 @@ import type { Task } from '../../types';
 import { computeSchedule } from '../lib/schedule';
 import CustomGantt from './CustomGantt';
 import LoadingSpinner from './LoadingSpinner';
+import StatusLegend from './StatusLegend';
 
 export interface GanttPageProps {
   tasks: Task[];
@@ -11,14 +12,6 @@ export interface GanttPageProps {
   projectName: string;
   onRetry?: () => void;
 }
-
-const LEGEND: Array<{ label: string; hex: string }> = [
-  { label: 'Done', hex: '#10b981' },
-  { label: 'In Progress', hex: '#3b82f6' },
-  { label: 'In Review', hex: '#3b82f6' },
-  { label: 'Blocked', hex: '#ef4444' },
-  { label: 'To Do', hex: '#cbd5e1' },
-];
 
 export default function GanttPage({ tasks, isLoading, loadError, projectName, onRetry }: GanttPageProps) {
   const schedule = useMemo(() => computeSchedule(tasks), [tasks]);
@@ -70,17 +63,7 @@ export default function GanttPage({ tasks, isLoading, loadError, projectName, on
     <div className="flex-1 overflow-auto p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className={`text-xl font-semibold ${headText}`}>Gantt · {projectName}</h1>
-        <ul className={`flex flex-wrap gap-3 text-xs ${subText}`}>
-          {LEGEND.map(item => (
-            <li key={item.label} className="flex items-center gap-1.5">
-              <span
-                className="inline-block w-3 h-3 rounded-[4px] border border-black/10"
-                style={{ backgroundColor: item.hex, opacity: 0.85 }}
-              />
-              {item.label}
-            </li>
-          ))}
-        </ul>
+        <StatusLegend className={subText} />
       </div>
       {(unestimated > 0 || schedule.warnings.length > 0) && (
         <div className="mb-3 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-xs text-amber-800 dark:text-amber-200 space-y-1">
