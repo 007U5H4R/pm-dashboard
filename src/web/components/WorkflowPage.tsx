@@ -20,8 +20,10 @@ const WorkflowPage: React.FC<WorkflowPageProps> = ({ tasks, docs, projectName })
 
   return (
     <div className="p-4 min-h-full">
-      <h1 className="mb-3 px-1 text-xl font-bold text-gray-900 dark:text-gray-100">{projectName} — Workflow</h1>
-      <StatusLegend className="mb-3 px-1 text-gray-600 dark:text-gray-400" />
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 px-1">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{projectName} — Workflow</h1>
+        <StatusLegend className="text-gray-600 dark:text-gray-400" />
+      </div>
       <CustomGantt tasks={stageTasks} projectName={`${projectName} workflow`} percentById={percentById} />
     </div>
   );
