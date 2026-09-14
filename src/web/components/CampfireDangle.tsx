@@ -5,7 +5,7 @@ import { useProject } from "../contexts/ProjectContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { behaviorFor, type CharmFrame, type CharmMemory, loadCharmMemory, saveCharmMemory } from "../lib/charm-behaviors";
 import { surpriseCharmFor } from "../lib/surprise-charm";
-import { charmSpeed, createRope, flick, restPose, stepRope, type Rope } from "../lib/verlet-rope";
+import { ambientWind, charmSpeed, createRope, flick, restPose, stepRope, type Rope } from "../lib/verlet-rope";
 
 // The canvas is larger than the resting charm so swings and flicks can overshoot without clipping.
 const CANVAS_W = 160;
@@ -21,9 +21,9 @@ const MAX_FLICK = 2400;
 const CLICK_MAX_MOVE = 4;
 const CLICK_MAX_MS = 300;
 const DOUBLE_MS = 350;
-
-/** Cheap pseudo-noise so the charm never sits perfectly still. */
-const wind = (t: number) => 14 * (Math.sin(1.3 * t) + 0.5 * Math.sin(3.7 * t + 1)) + 6 * Math.sin(0.21 * t);
+// Sway amplitude. Shares ambientWind + the rAF clock with the theme pull-cord so both swing the
+// same direction at the same moment; the charm reads its sway mostly as sprite rotation.
+const WIND_AMP = 26;
 
 const resolveCharm = (raw: string | undefined): CharmId => {
 	if (raw === SURPRISE) return surpriseCharmFor(new Date(), CHARM_IDS);
@@ -167,9 +167,10 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 			frameDt = Math.min((now - last) / 1000, 0.1);
 			acc += frameDt;
 			last = now;
+			const windX = WIND_AMP * ambientWind(now / 1000);
 			let steps = 0;
 			while (acc >= SUBSTEP && steps < MAX_SUBSTEPS) {
-				stepRope(rope, SUBSTEP, { ...PHYSICS, windX: wind(elapsed) });
+				stepRope(rope, SUBSTEP, { ...PHYSICS, windX });
 				elapsed += SUBSTEP;
 				acc -= SUBSTEP;
 				steps++;

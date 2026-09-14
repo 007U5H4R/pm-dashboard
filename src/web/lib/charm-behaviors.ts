@@ -1,6 +1,6 @@
 import { type CharmId, SQUIRREL_IMG } from "../assets/charms";
 
-/** Persisted per-charm state (daruma eyes, marshmallow char, wishbone wins, …). Numbers/booleans only. */
+/** Persisted per-charm state (marshmallow char, wishbone wins, …). Numbers/booleans only. */
 export type CharmMemory = Record<string, number | boolean>;
 
 /** Everything a behavior sees each frame. The ctx is already translated to the charm's top-centre
@@ -320,7 +320,15 @@ const BEHAVIORS: Record<CharmId, CharmBehavior> = {
 		},
 		onClick: kickBounce,
 	},
-	compass: base,
+	nimbu: {
+		draw: (f) => {
+			drawSprite(f);
+			twinkle(f, f.size * 0.02, f.size * 0.42, f.size * 0.14, 0.6);
+			twinkle(f, -f.size * 0.18, f.size * 0.72, f.size * 0.12, 2.7);
+			twinkle(f, f.size * 0.2, f.size * 0.24, f.size * 0.11, 4.8);
+		},
+		onClick: kickBounce,
+	},
 	acorn: {
 		// A frantic squirrel spirals around the acorn — behind it at the top of the orbit, in front
 		// at the bottom — never quite catching it.
@@ -333,32 +341,13 @@ const BEHAVIORS: Record<CharmId, CharmBehavior> = {
 		},
 		onClick: kickBounce,
 	},
-	daruma: {
-		// Blank-eyed master; click paints the left eye, then the right ("a win").
+	nazarbattu: {
+		// A fierce guardian mask; a golden ward pulses behind it to turn away the evil eye.
 		draw: (f) => {
-			blipGlow(f, "239,68,68"); // pulsing red aura behind the doll
+			blipGlow(f, "234,179,8"); // pulsing golden aura
 			drawSprite(f);
-			const eyes = num(f.mem.eyes);
-			const ctx = f.ctx;
-			ctx.save();
-			ctx.fillStyle = "#111827";
-			const ey = f.size * 0.4;
-			if (eyes >= 1) {
-				ctx.beginPath();
-				ctx.arc(-f.size * 0.12, ey, f.size * 0.055, 0, Math.PI * 2);
-				ctx.fill();
-			}
-			if (eyes >= 2) {
-				ctx.beginPath();
-				ctx.arc(f.size * 0.12, ey, f.size * 0.055, 0, Math.PI * 2);
-				ctx.fill();
-			}
-			ctx.restore();
 		},
-		onClick: (f) => {
-			f.mem.eyes = Math.min(2, num(f.mem.eyes) + 1);
-			kickBounce(f);
-		},
+		onClick: kickBounce,
 	},
 	maneki: {
 		draw: (f) => {

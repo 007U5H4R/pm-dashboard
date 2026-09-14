@@ -144,3 +144,12 @@ export function charmSpeed(rope: Rope, dt: number): number {
 	const i = rope.n - 1;
 	return Math.hypot(rope.x[i]! - rope.px[i]!, rope.y[i]! - rope.py[i]!) / dt;
 }
+
+/**
+ * A slow ambient breeze, normalised to roughly [-1, 1]. Every hanging thing (the charm and the theme
+ * pull-cord) multiplies this by its own amplitude and evaluates it at a shared wall-clock time, so
+ * they all sway in the same direction at the same moment regardless of when each mounted.
+ */
+export function ambientWind(t: number): number {
+	return 0.62 * Math.sin(0.7 * t) + 0.22 * Math.sin(1.7 * t + 0.7) + 0.18 * Math.sin(0.15 * t);
+}

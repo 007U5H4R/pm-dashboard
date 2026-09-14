@@ -108,15 +108,30 @@ export default function AppearanceSettings() {
 							aria-checked={appearance.charmEnabled === true}
 							aria-label="Hanging charm"
 							onClick={() => pick({ charmEnabled: !(appearance.charmEnabled === true) })}
-							className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-								appearance.charmEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
-							}`}
+							title={appearance.charmEnabled ? 'On — click to turn off' : 'Off — click to turn on'}
+							className="relative h-14 w-10 shrink-0 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
 						>
+							{/* hand-drawn rocker frame (wobbly ink outline) */}
 							<span
-								className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-									appearance.charmEnabled ? 'translate-x-5' : 'translate-x-0.5'
-								}`}
+								aria-hidden="true"
+								className="absolute inset-0 border-2 border-gray-800 dark:border-gray-200"
+								style={{ borderRadius: '8px 6px 9px 6px / 6px 9px 6px 8px', filter: 'url(#hand-rough)', transform: 'translateZ(0)' }}
 							/>
+							{/* rocker: the lit/raised half shows the current state (I = on, O = off) */}
+							<span className="absolute inset-[4px] flex flex-col overflow-hidden rounded-[5px]">
+								<span
+									className="relative flex flex-1 items-center justify-center text-[13px] font-bold leading-none text-white"
+									style={{ backgroundColor: appearance.charmEnabled ? '#22c55e' : '#b91c1c' }}
+								>
+									{appearance.charmEnabled && <span className="absolute inset-x-0 top-0 h-1.5 bg-white/40" />}I
+								</span>
+								<span
+									className="relative flex flex-1 items-center justify-center text-[13px] font-bold leading-none text-white"
+									style={{ backgroundColor: appearance.charmEnabled ? '#15803d' : '#ef4444' }}
+								>
+									{!appearance.charmEnabled && <span className="absolute inset-x-0 bottom-0 h-1.5 bg-white/45" />}O
+								</span>
+							</span>
 						</button>
 					</div>
 					{appearance.charmEnabled && (
