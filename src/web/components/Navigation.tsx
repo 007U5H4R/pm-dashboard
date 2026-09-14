@@ -1,5 +1,6 @@
 import React from 'react';
 import { BranchIndexingIndicator } from './BranchIndexingIndicator';
+import CampfireDangle from './CampfireDangle';
 import ThemeToggle from './ThemeToggle';
 import { ProjectIcon } from './ProjectIcon';
 import { useAppearance } from '../contexts/AppearanceContext';
@@ -29,6 +30,7 @@ const Navigation: React.FC<NavigationProps> = ({projectName, loadingMessage}) =>
                 </div>
                 <div className="flex items-center gap-3">
                     <BranchIndexingIndicator message={loadingMessage} />
+                    <CampfireDangle />
                     <ThemeToggle />
                 </div>
             </div>

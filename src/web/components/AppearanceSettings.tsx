@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppearance } from '../contexts/AppearanceContext';
 import { ProjectIcon, PROJECT_ICON_THEMES } from './ProjectIcon';
 import { DOODLES, DOODLE_KEYS } from '../assets/doodles';
+import { CHARMS, CHARM_IDS, SURPRISE, SURPRISE_PLAQUE } from '../assets/charms';
 import type { AppearanceSettings as AppearanceValues } from '../lib/api';
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -95,6 +96,64 @@ export default function AppearanceSettings() {
 							</button>
 						))}
 					</div>
+				</section>
+
+				{/* Hanging charm (opt-in delighter) */}
+				<section>
+					<div className="flex items-center justify-between">
+						<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Hanging charm</h3>
+						<button
+							type="button"
+							role="switch"
+							aria-checked={appearance.charmEnabled === true}
+							aria-label="Hanging charm"
+							onClick={() => pick({ charmEnabled: !(appearance.charmEnabled === true) })}
+							className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+								appearance.charmEnabled ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+							}`}
+						>
+							<span
+								className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+									appearance.charmEnabled ? 'translate-x-5' : 'translate-x-0.5'
+								}`}
+							/>
+						</button>
+					</div>
+					{appearance.charmEnabled && (
+						<div className="mt-3 grid grid-cols-3 sm:grid-cols-6 gap-3">
+							{CHARM_IDS.map((id) => (
+								<button
+									key={id}
+									type="button"
+									title={CHARMS[id].plaque}
+									onClick={() => pick({ charm: id })}
+									className={`flex flex-col items-center rounded-xl bg-gray-50 dark:bg-gray-900 border-2 p-1 transition-colors ${
+										(appearance.charm ?? 'marshmallow') === id ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+									}`}
+								>
+									<img src={CHARMS[id].image} alt={CHARMS[id].name} className="w-10 h-10 object-contain" />
+									<span className="mt-0.5 text-[10px] text-gray-600 dark:text-gray-400 truncate max-w-full">{CHARMS[id].name}</span>
+								</button>
+							))}
+							<button
+								key={SURPRISE}
+								type="button"
+								title={SURPRISE_PLAQUE}
+								onClick={() => pick({ charm: SURPRISE })}
+								className={`flex flex-col items-center rounded-xl bg-gray-50 dark:bg-gray-900 border-2 p-1 transition-colors ${
+									appearance.charm === SURPRISE ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+								}`}
+							>
+								<span
+									className="flex h-10 w-10 items-center justify-center text-lg font-bold text-white bg-amber-500 border-2 border-gray-800 dark:border-gray-200"
+									style={{ borderRadius: '12px 10px 13px 9px / 9px 13px 10px 12px', filter: 'url(#hand-rough)', transform: 'translateZ(0)' }}
+								>
+									?
+								</span>
+								<span className="mt-0.5 text-[10px] text-gray-600 dark:text-gray-400">Surprise</span>
+							</button>
+						</div>
+					)}
 				</section>
 
 			</div>

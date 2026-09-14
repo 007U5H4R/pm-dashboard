@@ -193,6 +193,10 @@ export interface AppearanceSettings {
 	doodleBg?: string;
 	ganttBg?: string;
 	description?: string;
+	/** Whether the hanging "Campfire Dangle" charm is shown (off when absent). */
+	charmEnabled?: boolean;
+	/** Selected charm id, or "surprise" for the daily random pick (defaults to marshmallow). */
+	charm?: string;
 }
 
 export class ApiClient {
