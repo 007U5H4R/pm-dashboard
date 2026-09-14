@@ -17,6 +17,37 @@ function labelColor(label: string): string {
   return LABEL_PALETTE[hash % LABEL_PALETTE.length]!;
 }
 
+// Hand-drawn (wobbly) status glyph for a subtask: a check for done, a half-filled disc for
+// in-progress/review, an open circle for to-do. The #hand-rough filter gives the sketchy edge;
+// translateZ(0) keeps it painting on first render inside the masked ticket-notch card.
+function subtaskStatusIcon(status: string) {
+  const normalized = status.trim().toLowerCase();
+  const style: React.CSSProperties = { filter: 'url(#hand-rough)', transform: 'translateZ(0)' };
+  if (normalized === 'done' || normalized.includes('complete')) {
+    return (
+      <svg className="h-3.5 w-3.5 shrink-0 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={style}>
+        <title>{status}</title>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+      </svg>
+    );
+  }
+  if (normalized.includes('progress') || normalized.includes('review')) {
+    return (
+      <svg className="h-3.5 w-3.5 shrink-0 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={style}>
+        <title>{status}</title>
+        <circle cx="12" cy="12" r="8" strokeWidth={2} />
+        <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="h-3.5 w-3.5 shrink-0 text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={style}>
+      <title>{status}</title>
+      <circle cx="12" cy="12" r="8" strokeWidth={2} />
+    </svg>
+  );
+}
+
 interface TaskCardProps {
   task: Task;
   childTasks?: Task[];
@@ -419,17 +450,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
                       onEdit(child);
                     }}
                   >
-                    <span
-                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                        child.status === 'Done'
-                          ? 'bg-emerald-400'
-                          : child.status === 'In Progress' || child.status === 'In Review'
-                            ? 'bg-amber-400'
-                            : 'bg-gray-300 dark:bg-gray-500'
-                      }`}
-                    />
                     <span className="shrink-0 font-mono text-gray-500 dark:text-gray-400">{child.id}</span>
-                    <span className="ml-auto shrink-0 text-[10px] font-medium text-gray-500 dark:text-gray-500">{child.status}</span>
+                    <span className="ml-auto flex shrink-0 items-center" title={child.status}>
+                      {subtaskStatusIcon(child.status)}
+                    </span>
                   </li>
                 ))}
               </ul>
