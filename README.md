@@ -43,7 +43,7 @@ every project at once.
 ### Kanban board — hand-drawn ticket cards, Execution/Workflow toggle
 ![Campfire Board — Kanban board](./docs/screenshots/kanban.jpg)
 
-### Workflow view — the 10 build-workflow stages as cards
+### Workflow view — the 10 build-workflow stages on an hours timeline
 ![Campfire Board — Workflow view](./docs/screenshots/workflow.jpg)
 
 ### Execution Gantt — hours-axis timeline with dependencies
