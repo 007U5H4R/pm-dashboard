@@ -257,6 +257,8 @@ export const SPA_PATHS = [
 	"/tasks/*",
 	"/board",
 	"/board/*",
+	"/tickets",
+	"/workflow",
 	"/gantt",
 	"/milestones",
 	"/drafts",
