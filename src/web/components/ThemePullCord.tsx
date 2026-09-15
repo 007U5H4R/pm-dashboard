@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import { playClick, playPluck } from "../lib/charm-audio";
 import { ambientWind, createRope, flick, restPose, type Rope, stepRope } from "../lib/verlet-rope";
 
 // A light-switch pull-cord that toggles the theme (replaces the theme button). Pull the knob down and
@@ -162,6 +163,7 @@ const ThemePullCord: React.FC = () => {
 		const onDown = (e: PointerEvent) => {
 			e.preventDefault();
 			hit.setPointerCapture(e.pointerId);
+			playPluck(280, 0.045); // soft catch as the cord is grabbed
 			downT = performance.now();
 			moved = 0;
 			samples.length = 0;
@@ -180,6 +182,7 @@ const ThemePullCord: React.FC = () => {
 			if (samples.length > 5) samples.shift();
 		};
 		const doToggle = (tug: boolean) => {
+			playClick(0.06); // the switch actuates
 			toggleRef.current();
 			if (tug) flick(rope, 0, TUG, SUB);
 			if (reduce.matches) draw();
@@ -196,6 +199,7 @@ const ThemePullCord: React.FC = () => {
 			}
 			const isClick = moved < 4 && now - downT < 300;
 			if (isClick || pulled > PULL_TOGGLE) doToggle(isClick);
+			else playPluck(230, 0.04); // released without tripping the switch — a soft snap-back
 			if (reduce.matches) {
 				restPose(rope);
 				draw();

@@ -5,6 +5,7 @@ import { useProject } from "../contexts/ProjectContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { behaviorFor, type CharmFrame, type CharmMemory, loadCharmMemory, saveCharmMemory } from "../lib/charm-behaviors";
 import { surpriseCharmFor } from "../lib/surprise-charm";
+import { playPluck } from "../lib/charm-audio";
 import { ambientWind, charmSpeed, createRope, flick, restPose, stepRope, type Rope } from "../lib/verlet-rope";
 
 // The canvas is larger than the resting charm so swings and flicks can overshoot without clipping.
@@ -249,6 +250,7 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 		const onDown = (e: PointerEvent) => {
 			e.preventDefault();
 			hit.setPointerCapture(e.pointerId);
+			playPluck(500, 0.045); // soft catch as the charm is grabbed
 			const p = local(e);
 			const i = rope.n - 1;
 			grabDX = rope.x[i]! - p.x;
@@ -290,6 +292,8 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 				}
 				flick(rope, vx, vy, SUBSTEP);
 			}
+			// A "let go" pluck — a harder flick rings a touch louder and higher.
+			playPluck(300 + Math.min(220, releaseSpeed / 12), Math.min(0.09, 0.035 + releaseSpeed / 30000), 0.2);
 			frame.t = elapsed;
 			frame.speed = releaseSpeed;
 			behavior.onRelease?.(frame);
@@ -303,6 +307,7 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === "Enter" || e.key === " ") {
 				e.preventDefault();
+				playPluck(500, 0.045);
 				fireClick();
 			}
 		};
