@@ -5,7 +5,7 @@ import { useProject } from "../contexts/ProjectContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { behaviorFor, type CharmFrame, type CharmMemory, loadCharmMemory, saveCharmMemory } from "../lib/charm-behaviors";
 import { surpriseCharmFor } from "../lib/surprise-charm";
-import { playPluck } from "../lib/charm-audio";
+import { playCharmSound, playPluck } from "../lib/charm-audio";
 import { ambientWind, charmSpeed, createRope, flick, restPose, stepRope, type Rope } from "../lib/verlet-rope";
 
 // The canvas is larger than the resting charm so swings and flicks can overshoot without clipping.
@@ -232,6 +232,7 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 			if (samples.length > 5) samples.shift();
 		};
 		const fireClick = () => {
+			playCharmSound(charmId); // each charm answers a click with its own sound
 			frame.t = elapsed;
 			const now = performance.now();
 			if (lastClickT >= 0 && now - lastClickT < DOUBLE_MS && behavior.onDoubleClick) {
@@ -292,12 +293,14 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 				}
 				flick(rope, vx, vy, SUBSTEP);
 			}
-			// A "let go" pluck — a harder flick rings a touch louder and higher.
-			playPluck(300 + Math.min(220, releaseSpeed / 12), Math.min(0.09, 0.035 + releaseSpeed / 30000), 0.2);
 			frame.t = elapsed;
 			frame.speed = releaseSpeed;
 			behavior.onRelease?.(frame);
-			if (moved < CLICK_MAX_MOVE && now - downT < CLICK_MAX_MS) fireClick();
+			const isClick = moved < CLICK_MAX_MOVE && now - downT < CLICK_MAX_MS;
+			// A click plays the charm's own sound (in fireClick); a drag/flick lets go with a pluck that
+			// rings a touch louder and higher the harder the flick.
+			if (isClick) fireClick();
+			else playPluck(300 + Math.min(220, releaseSpeed / 12), Math.min(0.09, 0.035 + releaseSpeed / 30000), 0.2);
 			persist();
 			if (reduceMotion.matches) {
 				restPose(rope);
@@ -307,7 +310,6 @@ const DangleCanvas: React.FC<{ charmId: CharmId; projectId: string | null }> = (
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === "Enter" || e.key === " ") {
 				e.preventDefault();
-				playPluck(500, 0.045);
 				fireClick();
 			}
 		};
