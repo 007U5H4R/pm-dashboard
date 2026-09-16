@@ -38,6 +38,19 @@ describe("ProjectSwitcher", () => {
 		expect(html).not.toContain('role="menu"');
 	});
 
+	it("renders each dropdown row with the project's saved icon, not the name-derived default", () => {
+		// "Beta" resolves to the default 'gem' theme by name; a saved icon of 'writing' must win.
+		const withIcon = [
+			{ id: "alpha", name: "Alpha", path: "/a" },
+			{ id: "beta", name: "Beta", path: "/b", icon: "writing" },
+		];
+		const writingPath = "M5 19l1.3-4.4L15 6"; // unique to the 'writing' icon
+		const html = renderToString(
+			<ProjectSwitcherView projects={withIcon} activeProjectId="alpha" onSelect={() => {}} open />,
+		);
+		expect(html).toContain(writingPath);
+	});
+
 	it("mounts inside a ProjectProvider without crashing (no projects yet → hidden)", () => {
 		const html = renderToString(
 			<ProjectProvider>

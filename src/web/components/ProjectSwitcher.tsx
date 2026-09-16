@@ -87,7 +87,7 @@ export function ProjectSwitcherView({ projects, activeProjectId, onSelect, open 
 											: 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
 									}`}
 								>
-									<span className="flex items-center gap-2 min-w-0"><ProjectIcon name={project.name} id={project.id} className="w-5 h-5 shrink-0" /><span className="truncate">{project.name}</span></span>
+									<span className="flex items-center gap-2 min-w-0"><ProjectIcon name={project.name} id={project.id} theme={selected ? appearance.icon : project.icon} className="w-5 h-5 shrink-0" /><span className="truncate">{project.name}</span></span>
 									{selected && (
 										<svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

@@ -2140,6 +2140,21 @@ export class BacklogServer {
 
 type SocketData = { pid: string };
 
+/** Best-effort read of a registered project's saved appearance icon (its backlog/pm-dashboard.json
+ * → `icon`), so the project switcher can show each project's chosen icon without instantiating the
+ * project. Returns undefined when absent/unreadable, so the client falls back to a name-derived
+ * default icon. */
+async function readSavedProjectIcon(projectPath: string): Promise<string | undefined> {
+	try {
+		const file = Bun.file(join(projectPath, "backlog", "pm-dashboard.json"));
+		if (!(await file.exists())) return undefined;
+		const data = (await file.json()) as Record<string, unknown>;
+		return typeof data.icon === "string" ? data.icon : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 /**
  * One Bun.serve for N projects. Every project's API table is mounted at /api/p/:pid/<key>;
  * /api/<key> stays as a shim to the default project so single-project use is unchanged.
@@ -2178,8 +2193,15 @@ export class DashboardServer {
 		for (const path of SPA_PATHS) routes[path] = spaIndexHtml;
 
 		routes["/api/projects"] = {
-			GET: async () =>
-				Response.json({ projects: this.registry.list(), defaultProjectId: this.registry.manifest.defaultProjectId }),
+			GET: async () => {
+				const projects = await Promise.all(
+					this.registry.list().map(async (entry) => {
+						const icon = await readSavedProjectIcon(entry.path);
+						return icon ? { ...entry, icon } : entry;
+					}),
+				);
+				return Response.json({ projects, defaultProjectId: this.registry.manifest.defaultProjectId });
+			},
 		};
 
 		const template = this.registry.getDefault().apiRoutes;

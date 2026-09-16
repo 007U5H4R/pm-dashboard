@@ -105,6 +105,19 @@ describe("multi-project dashboard", () => {
 		expect(body.projects[0]).toEqual({ id: "alpha", name: "Alpha", path: join(root, "alpha") });
 	});
 
+	it("includes each project's saved appearance icon, omitting it when none is set", async () => {
+		// beta has a saved icon; alpha does not.
+		await writeFile(join(root, "beta", "backlog", "pm-dashboard.json"), JSON.stringify({ icon: "writing" }));
+		const projects = (
+			(await (await api("/api/projects")).json()) as {
+				projects: Array<{ id: string; icon?: string }>;
+			}
+		).projects;
+		const byId = Object.fromEntries(projects.map((p) => [p.id, p]));
+		expect(byId.beta?.icon).toBe("writing");
+		expect(byId.alpha).not.toHaveProperty("icon");
+	});
+
 	it("serves each project's own tasks and isolates writes per project", async () => {
 		const created = await createTask("alpha", "Only in alpha");
 		expect(created.status).toBe(201);

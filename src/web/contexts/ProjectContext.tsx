@@ -5,6 +5,8 @@ export interface ProjectSummary {
   id: string;
   name: string;
   path: string;
+  /** Saved appearance icon for this project (from its backlog/pm-dashboard.json), if any. */
+  icon?: string;
 }
 
 export interface ProjectContextValue {
