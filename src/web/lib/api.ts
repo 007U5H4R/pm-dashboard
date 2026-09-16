@@ -190,6 +190,8 @@ const DEFAULT_CONFIG: RequestConfig = {
 /** Per-project dashboard appearance selections (all optional; absent = theme default). */
 export interface AppearanceSettings {
 	icon?: string;
+	/** Office-style accent theme key (see accentThemes.ts); colors the top bar + sidebar. */
+	accent?: string;
 	doodleBg?: string;
 	ganttBg?: string;
 	description?: string;

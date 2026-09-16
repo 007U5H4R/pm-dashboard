@@ -405,3 +405,118 @@
 .excali-hand {
     letter-spacing: 0.01em;
 }
+
+/* ── Per-project accent themes (Office-style chrome) ──────────────────────────
+   `.accent-<key>` (set on the Layout root) defines the chrome variables read by
+   the top nav bar and the left sidebar. Neutral == today's white/gray, so an
+   unset project looks unchanged. Colored themes give the top bar a solid accent
+   with white text and the sidebar a soft matching tint. Dark blocks override
+   only what differs; unset vars inherit the light block. */
+.accent-neutral {
+    --chrome-topbar-bg: #ffffff;
+    --chrome-topbar-fg: #111827;
+    --chrome-topbar-fg-muted: #6b7280;
+    --chrome-topbar-border: #e5e7eb;
+    --chrome-topbar-badge: #f3f4f6;
+    --chrome-sidebar-bg: #ffffff;
+    --chrome-sidebar-border: #e5e7eb;
+}
+.dark .accent-neutral {
+    --chrome-topbar-bg: #111827;
+    --chrome-topbar-fg: #f3f4f6;
+    --chrome-topbar-fg-muted: #9ca3af;
+    --chrome-topbar-border: #1f2937;
+    --chrome-topbar-badge: #1f2937;
+    --chrome-sidebar-bg: #111827;
+    --chrome-sidebar-border: #1f2937;
+}
+
+.accent-blue {
+    --chrome-topbar-bg: #2b579a;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #eef2f9;
+    --chrome-sidebar-border: #dbe4f3;
+}
+.dark .accent-blue {
+    --chrome-topbar-bg: #24487f;
+    --chrome-sidebar-bg: #12192a;
+    --chrome-sidebar-border: #24314d;
+}
+
+.accent-green {
+    --chrome-topbar-bg: #217346;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #eaf3ee;
+    --chrome-sidebar-border: #d3e7dc;
+}
+.dark .accent-green {
+    --chrome-topbar-bg: #1b5c38;
+    --chrome-sidebar-bg: #101d17;
+    --chrome-sidebar-border: #1f3a2c;
+}
+
+.accent-orange {
+    --chrome-topbar-bg: #c43e1c;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #fbeee9;
+    --chrome-sidebar-border: #f4d8cd;
+}
+.dark .accent-orange {
+    --chrome-topbar-bg: #a53417;
+    --chrome-sidebar-bg: #221510;
+    --chrome-sidebar-border: #43281c;
+}
+
+.accent-purple {
+    --chrome-topbar-bg: #80397b;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #f4ecf3;
+    --chrome-sidebar-border: #e6d4e4;
+}
+.dark .accent-purple {
+    --chrome-topbar-bg: #6a2f66;
+    --chrome-sidebar-bg: #1d1421;
+    --chrome-sidebar-border: #3a2740;
+}
+
+.accent-red {
+    --chrome-topbar-bg: #a4373a;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #f7ebeb;
+    --chrome-sidebar-border: #ecd2d3;
+}
+.dark .accent-red {
+    --chrome-topbar-bg: #8a2e31;
+    --chrome-sidebar-bg: #221314;
+    --chrome-sidebar-border: #432427;
+}
+
+.accent-teal {
+    --chrome-topbar-bg: #0f766e;
+    --chrome-topbar-fg: #ffffff;
+    --chrome-topbar-fg-muted: rgba(255, 255, 255, 0.72);
+    --chrome-topbar-border: rgba(0, 0, 0, 0.15);
+    --chrome-topbar-badge: rgba(255, 255, 255, 0.18);
+    --chrome-sidebar-bg: #e9f3f2;
+    --chrome-sidebar-border: #cfe6e3;
+}
+.dark .accent-teal {
+    --chrome-topbar-bg: #0c5f59;
+    --chrome-sidebar-bg: #101f1d;
+    --chrome-sidebar-border: #1f3a37;
+}

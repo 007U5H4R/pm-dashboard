@@ -4,6 +4,7 @@ import Navigation from './Navigation';
 import { useAppearance } from '../contexts/AppearanceContext';
 import { projectTheme } from './ProjectIcon';
 import { DOODLES } from '../assets/doodles';
+import { accentClass } from '../lib/accentThemes';
 import { HealthIndicator, HealthSuccessToast } from './HealthIndicator';
 import { DuplicateIdWarning } from './DuplicateIdWarning';
 import type { DuplicateRepairPlan } from '../../core/duplicate-task-repair';
@@ -41,7 +42,7 @@ export default function Layout({
 	const doodleKey = appearance.doodleBg || projectTheme(projectName);
 	const doodleUrl = DOODLES[doodleKey];
 	return (
-		<div className="relative isolate h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200">
+		<div className={`relative isolate h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200 ${accentClass(appearance.accent)}`}>
 			{/* App-wide hand-drawn "rough" filter (feTurbulence displaces edges so
 			    borders/fills wobble like ink). Referenced by the Kanban card
 			    progress bars via url(#hand-rough); mounted once here so it's present

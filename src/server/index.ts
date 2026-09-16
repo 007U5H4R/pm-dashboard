@@ -1506,7 +1506,7 @@ export class BacklogServer {
 			const file = Bun.file(path);
 			const current = (await file.exists()) ? ((await file.json()) as Record<string, unknown>) : {};
 			const next = { ...current };
-			for (const key of ["icon", "doodleBg", "ganttBg", "description", "charm"] as const) {
+			for (const key of ["icon", "accent", "doodleBg", "ganttBg", "description", "charm"] as const) {
 				if (typeof body[key] === "string") next[key] = body[key];
 			}
 			if (typeof body.charmEnabled === "boolean") next.charmEnabled = body.charmEnabled;

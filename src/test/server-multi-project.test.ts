@@ -118,6 +118,21 @@ describe("multi-project dashboard", () => {
 		expect(byId.alpha).not.toHaveProperty("icon");
 	});
 
+	it("persists a project's accent theme through the appearance endpoint", async () => {
+		const put = await api("/api/p/beta/appearance", {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ accent: "blue" }),
+		});
+		expect(put.status).toBe(200);
+		expect(((await put.json()) as { accent?: string }).accent).toBe("blue");
+
+		const got = (await (await api("/api/p/beta/appearance")).json()) as { accent?: string };
+		expect(got.accent).toBe("blue");
+		const saved = JSON.parse(await readFile(join(root, "beta", "backlog", "pm-dashboard.json"), "utf8"));
+		expect(saved.accent).toBe("blue");
+	});
+
 	it("serves each project's own tasks and isolates writes per project", async () => {
 		const created = await createTask("alpha", "Only in alpha");
 		expect(created.status).toBe(201);

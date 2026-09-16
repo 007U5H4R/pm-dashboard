@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppearance } from '../contexts/AppearanceContext';
 import { ProjectIcon, PROJECT_ICON_THEMES } from './ProjectIcon';
+import { ACCENT_THEMES } from '../lib/accentThemes';
 import { DOODLES, DOODLE_KEYS } from '../assets/doodles';
 import { CHARMS, CHARM_IDS, SURPRISE, SURPRISE_PLAQUE } from '../assets/charms';
 import type { AppearanceSettings as AppearanceValues } from '../lib/api';
@@ -72,6 +73,26 @@ export default function AppearanceSettings() {
 								}`}
 							>
 								<ProjectIcon name="" theme={t} className="w-6 h-6" />
+							</button>
+						))}
+					</div>
+				</section>
+
+				{/* Accent theme (Office-style chrome color for the top bar + sidebar) */}
+				<section>
+					<h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Theme</h3>
+					<div className="grid grid-cols-7 gap-2">
+						{ACCENT_THEMES.map((t) => (
+							<button
+								key={t.key}
+								type="button"
+								title={t.label}
+								onClick={() => pick({ accent: t.key })}
+								className={`flex items-center justify-center aspect-square rounded-xl border-2 transition-colors ${
+									(appearance.accent ?? 'neutral') === t.key ? 'border-indigo-500' : 'border-transparent hover:border-gray-300'
+								}`}
+							>
+								<span className="w-6 h-6 rounded-full border border-black/10" style={{ backgroundColor: t.swatch }} />
 							</button>
 						))}
 					</div>
