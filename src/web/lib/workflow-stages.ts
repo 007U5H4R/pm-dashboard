@@ -9,8 +9,9 @@ const UNIT_MS = 86_400_000;
 export const WORKFLOW_STAGE_STATUSES = ["To Do", "In Progress", "Done"] as const;
 
 /** The 12-stage build workflow (global CLAUDE.md build-workflow.md). Stages 1–6 are marked done when
- * their artifact document exists; Execution reflects ticket completion; the review/deploy/feedback
- * stages have no data signal yet, so they read as not-started until marked. */
+ * their artifact document exists; Execution reflects ticket completion; every stage also follows the
+ * HANDOFF baton, whose title names the stage just completed ("… Stage 8 Design Critique COMPLETE → next: Stage 9 …"):
+ * stages up to that number read Done and the next one In Progress. */
 // `weight` = a stage's estimated duration as a fraction of the Execution stage. Execution is the anchor
 // (its duration comes from the real ticket schedule); every other stage is estimated from it, so the
 // estimates scale automatically for any project — new or old — from that project's own execution length.
@@ -76,6 +77,16 @@ export function computeWorkflowStages(tasks: Task[], docs: Document[]): Workflow
 	// ticket existing for Execution (tickets can't exist without breakdown + planning). Force every
 	// stage before the furthest-reached one to Done, so the chain can never show a later stage moving
 	// while its prerequisites read incomplete — even if an earlier stage's artifact wasn't detected.
+	// The HANDOFF baton is the round-aware signal: "Stage N … COMPLETE" marks stages 1..N Done and stage N+1 In Progress.
+	// (The later stages' own artifacts — QA-report, lesson-learnt — persist across milestones, so they are no signal.)
+	const handoffStage = docTitles
+		.filter((title) => /^handoff/i.test(title))
+		.map((title) => title.match(/\bstage\s*(\d{1,2})\b[^\n]*?\bcomplete\b/i))
+		.reduce((max, m) => (m ? Math.max(max, Number(m[1])) : max), 0);
+	if (handoffStage > 0) {
+		for (let i = 0; i < Math.min(handoffStage, STAGES.length); i++) rawStatus[i] = "Done";
+		if (handoffStage < STAGES.length && rawStatus[handoffStage] !== "Done") rawStatus[handoffStage] = "In Progress";
+	}
 	const reached = STAGES.map((stage, index) => (stage.execution ? total > 0 : rawStatus[index] === "Done"));
 	let furthestReached = -1;
 	reached.forEach((isReached, index) => {
